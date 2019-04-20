@@ -8,11 +8,14 @@ app.use(bodyParser.json());
 
 app.get('/',function(req,res){
 	res.sendfile("index.html");
+	console.log("index");
 });
 
 app.post('/command',function(req,res){
 	var clNum = req.body.num;
 	var cmdRes = req.body.cmd;
+
+	console.log(req.body);
 
 	var timeStamp = getDateTime();
 	var data = timeStamp + ":: Client: " + clNum + " Response: " + cmdRes;
@@ -31,6 +34,7 @@ app.post('/command',function(req,res){
 //time:xx,xx,xx cnum:xxx cmd:xxxxx
 app.get('/newCmd',function(req,res){
 	res.sendfile("cmd.txt");
+	console.log("command");
 });
 
 app.listen(3000, function(){
