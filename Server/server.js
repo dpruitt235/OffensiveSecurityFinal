@@ -18,7 +18,7 @@ app.post('/command',function(req,res){
 	console.log(req.body);
 
 	var timeStamp = getDateTime();
-	var data = timeStamp + ":: Client: " + clNum + " Response: " + cmdRes;
+	var data = timeStamp + " Client: " + clNum + " Response: " + cmdRes;
 
 
 	console.log(data);
@@ -47,7 +47,13 @@ function getDateTime()
 	var hour = date.getHours();
 	hour = (hour < 10 ? "0" : "") + hour;
 
+	var min = date.getMinutes();
+	min = (min < 10 ? "0" : "") + min;
+
+	var sec = date.getSeconds();
+	sec = (sec < 10 ? "0" : "") + sec;
+
 	//add rest of time stamp
 
-	return hour;
+	return hour + ':' + min + ':' + sec;
 }

