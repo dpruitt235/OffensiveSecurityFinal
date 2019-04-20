@@ -1,1 +1,1 @@
-time:18,32,12 cnum:1 cmd:"ls"
+time:18,32,12 cnum:1 cmd:"strings Application.mk"

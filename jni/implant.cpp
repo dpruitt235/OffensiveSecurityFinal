@@ -82,6 +82,9 @@ void send_terminal_back(int clientNumber, string terminal){
 string send_to_terminal(string cmd){
     //system(cmd.c_str());
     char path[1035];
+    cmd = cmd.substr(0, cmd.size()-1 );
+    cmd.erase(0,1);
+    cout << cmd.c_str() << endl;
 
     FILE *fp = popen( cmd.c_str(), "r");
 
@@ -123,6 +126,31 @@ string get_command()
     return readBuffer;
 }
 
+
+string get_from_url(string url)
+{
+    CURL *curl = curl_easy_init();
+    CURLcode res;
+
+    struct curl_slist *list = NULL;
+
+    if(curl){
+        string response_string;
+        string header_string;
+        readBuffer.clear();
+        string GETurl = "http://127.0.0.1:3000/" + url;
+        curl_easy_setopt(curl, CURLOPT_URL, GETurl);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
+        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
+
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        curl = NULL;
+    }
+    return readBuffer;
+}
+
 // the header of the url responce gets mixed up with 
 string strip_responce_string(string res){
     size_t pos = res.find("time:"); //get location of time:
@@ -148,7 +176,6 @@ void parse_command(Command &cmd, string str){
     //command string
     //str.erase(0,4);
     v.push_back( str );
-
 
     string temp;
     temp = v[0];
@@ -180,13 +207,32 @@ string Check_Num_Send_to_Terminal(Command obj){
 }
 
 
+string strip_ID_Num(string number)
+{
+    size_t plc = number.find("idNum");
+    cout << number << endl;
+    number.erase(0,plc);
+    cout << number << endl;
+    return number;
+}
+
+
 int main() {
     string os_name = get_os_name();
+    LASTCOMMAND = "";
+    struct Command newCmd;
+    CLIENTNUMBER = 1;
 
     //Connect to server and get client number
-    CLIENTNUMBER = 1;
-    LASTCOMMAND = "";
-    struct Command newCmd;    
+    string tempNum;
+    /*while(CLIENTNUMBER == -1){
+        tempNum = get_from_url("assignId");
+        strip_ID_Num(tempNum);
+        cout << tempNum << endl;
+        CLIENTNUMBER == 1;
+    }  */
+
+    //cout << "got here" << endl;
 
     if (os_name == "Linux") {
         while(1)
@@ -198,7 +244,6 @@ int main() {
             if(outputTest != "")
             {
                 //Parse Data for Use
-                
                 parse_command(newCmd, outputTest);
             }
 
