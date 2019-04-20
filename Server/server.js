@@ -34,7 +34,6 @@ app.post('/command',function(req,res){
 //time:xx,xx,xx cnum:xxx cmd:xxxxx
 app.get('/newCmd',function(req,res){
 	res.sendfile("cmd.txt");
-	console.log("command");
 });
 
 app.listen(3000, function(){
