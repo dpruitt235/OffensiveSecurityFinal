@@ -16,11 +16,11 @@ app.post('/command',function(req,res){
 	var cmdRes = req.body.cmd;
 
 	var timeStamp = getDateTime();
-	var data = timeStamp + " Client: " + clNum + " Response: " + cmdRes;
+	var data = timeStamp + "\n Client: " + clNum + " Response: " + cmdRes;
 
 
 	console.log(data);
-	fs.appendFileSync("/home/davidpruitt/Desktop/Files/data.txt", data, function(err){
+	fs.appendFileSync("fileSave/data.txt", data, function(err){
 		if(err){
 			return console.log(err);
 		}
@@ -38,12 +38,12 @@ app.get('/newCmd',function(req,res){
 var newestID = 0;
 app.get('/assignId', function(req,res){
 	console.log(newestID);
-	fs.writeFile("/home/davidpruitt/Desktop/Files/currentId.txt", "idNum:" + newestID, function(err){
+	fs.writeFile("currentId.txt", "idNum:" + newestID, function(err){
 		if(err){
 			return console.log(err);
 		}
 	})
-	res.sendfile("/home/davidpruitt/Desktop/Files/currentId.txt");
+	res.sendfile("fileSend//currentId.txt");
 	newestID++;
 });
 

