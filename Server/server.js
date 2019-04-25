@@ -35,16 +35,22 @@ app.get('/newCmd',function(req,res){
 });
 
 //Assigns a victum a number to pass data directly to it
-var newestID = 0;
+var NEWID = 0;
 app.get('/assignId', function(req,res){
-	console.log(newestID);
-	fs.writeFile("currentId.txt", "idNum:" + newestID, function(err){
-		if(err){
-			return console.log(err);
-		}
-	})
-	res.sendfile("fileSend//currentId.txt");
-	newestID++;
+	res.setHeader('Content-Type', 'application/json');
+	res.end(JSON.stringify({ID: NEWID}));
+	NEWID++;
+});
+
+//Let's the server know that device is connected
+//and with what ID
+app.post('checkIn',function(req,res){
+	//Add id to checkin data.
+});
+
+//Checkout for ID's that have been self terminated
+app.post('leave', function(req,res){
+	//Add remove from active client list
 });
 
 app.listen(3000, function(){
