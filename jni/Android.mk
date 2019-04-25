@@ -11,4 +11,5 @@ LOCAL_MODULE := implant
 LOCAL_SRC_FILES := implant.cpp
 LOCAL_STATIC_LIBRARIES := libcurl
 LOCAL_LDLIBS := -lz
+LOCAL_CPP_FEATURES := exceptions
 include $(BUILD_EXECUTABLE)
