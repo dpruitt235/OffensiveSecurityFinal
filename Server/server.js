@@ -47,10 +47,12 @@ app.get('/assignId', function(req,res){
 //and with what ID
 app.post('/checkIn',function(req,res){
 	//Add id to checkin data.
+	var user = req.body.username;
 	var id = req.body.id;
 	var os = req.body.os;
-	addToListOfActiveClient(id, os);
-	console.log("Added client with id: " + id + " and an os of: " + os);
+	addToListOfActiveClient(user, id, os);
+	console.log("Added client with id: " + id + " and an os of: " + os 
+		+ " and name: " + user);
 	res.end("");
 });
 
@@ -87,20 +89,47 @@ function getDateTime()
 
 var ActiveClients = [];
 
-function addToListOfActiveClient(ID, OS)
+function addToListOfActiveClient(user, ID, OS)
 {
+	//add to list
 	ActiveClients.push({
+		username: user, 
 		ClientId: ID,
 		OS: OS
 	});
+
+	//write json to file
+	writeClientsToFile()
 }
 
 function removeFromListOfActiveClient(ID)
 {
-	
+	//remove from list
+	for(var i = 0; i < ActiveClients.length; i++){
+		if(ActiveClients[i].ClientId === ID){
+
+			ActiveClients.splice(i, 1);
+		}
+	}
+	//save to file
+	writeClientsToFile();
 }
 
 function getListOfActiveClient()
 {
-	
+	for(var i = 0; i < ActiveClients.length; i++){
+		console.log("ClientID: " + ActiveClients[i].ClientId + 
+			" with OS: " + ActiveClients[i].OS);
+	}
+}
+
+function writeClientsToFile()
+{
+	var fs = require("fs");
+	fs.writeFile("./fileSave/clients.json", JSON.stringify(ActiveClients), (err) => {
+		if(err) {
+			console.error(err);
+			return;
+		};
+	});
 }

