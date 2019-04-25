@@ -246,7 +246,7 @@ int main() {
     cout << "Connected with ID: " << CLIENTNUMBER << endl;
 
     //For testing, replace with current OS
-    if (os_name == "Linux") {
+    if (os_name == "Linux" || os_name =="Apple") {
         //Check in username, ID, and os with server
         string username = send_to_terminal("\"id -un\"");
         string checkinwithServer = "username=" + username + "&id=" + 
