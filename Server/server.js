@@ -35,10 +35,11 @@ app.get('/newCmd',function(req,res){
 });
 
 //Assigns a victum a number to pass data directly to it
-var NEWID = 0;
+var NEWID = 1;
 app.get('/assignId', function(req,res){
 	res.setHeader('Content-Type', 'application/json');
 	res.end(JSON.stringify({ID: NEWID}));
+	console.log(NEWID);
 	NEWID++;
 });
 
