@@ -149,4 +149,67 @@ drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
 drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
 -rw-r--r-- 1 davidpruitt davidpruitt    7830 Apr 24 22:19 implant.cpp
 -rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
-"
+"22:39:00
+ Client: 1 Response: "total 5400
+drwxr-xr-x 3 davidpruitt davidpruitt    4096 Apr 24 22:38 .
+drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
+-rw-r--r-- 1 davidpruitt davidpruitt     343 Apr 24 21:11 Android.mk
+-rwxr-xr-x 1 davidpruitt davidpruitt   63104 Apr 24 22:38 a.out
+-rw-r--r-- 1 davidpruitt davidpruitt      45 Apr 24 21:11 Application.mk
+drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
+-rw-r--r-- 1 davidpruitt davidpruitt    7830 Apr 24 22:19 implant.cpp
+-rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
+"22:39:10
+ Client: 1 Response: ""22:39:15
+ Client: 1 Response: "Android.mk
+a.out
+Application.mk
+curl
+implant.cpp
+libcurl.a
+"22:39:36
+ Client: 1 Response: ""22:39:46
+ Client: 1 Response: "Android.mk
+a.out
+Application.mk
+curl
+implant.cpp
+libcurl.a
+"22:40:11
+ Client: 1 Response: "curl.h
+curlver.h
+easy.h
+multi.h
+system.h
+"22:40:31
+ Client: 1 Response: "Android.mk
+a.out
+Application.mk
+curl
+implant.cpp
+libcurl.a
+"22:40:51
+ Client: 1 Response: "Desktop
+Documents
+Downloads
+Music
+node_modules
+Pictures
+Public
+Templates
+Videos
+"22:41:21
+ Client: 1 Response: "Desktop
+Documents
+Downloads
+Music
+node_modules
+Pictures
+Public
+Templates
+Videos
+"22:43:51
+ Client: 1 Response: ""22:44:01
+ Client: 1 Response: "davidpruitt
+"22:44:21
+ Client: 1 Response: ""
