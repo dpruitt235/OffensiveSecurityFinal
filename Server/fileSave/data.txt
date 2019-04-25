@@ -95,4 +95,44 @@ drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 17:41 ..
 drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 19 18:56 curl
 -rw-r--r-- 1 davidpruitt davidpruitt    6620 Apr 24 18:18 implant.cpp
 -rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 19 18:56 libcurl.a
+"21:33:00
+ Client: 1 Response: "total 5396
+drwxr-xr-x 3 davidpruitt davidpruitt    4096 Apr 24 21:32 .
+drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
+-rw-r--r-- 1 davidpruitt davidpruitt     343 Apr 24 21:11 Android.mk
+-rwxr-xr-x 1 davidpruitt davidpruitt   58592 Apr 24 21:32 a.out
+-rw-r--r-- 1 davidpruitt davidpruitt      45 Apr 24 21:11 Application.mk
+drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
+-rw-r--r-- 1 davidpruitt davidpruitt    6875 Apr 24 21:31 implant.cpp
+-rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
+"21:41:28
+ Client: 1 Response: "total 5396
+drwxr-xr-x 3 davidpruitt davidpruitt    4096 Apr 24 21:41 .
+drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
+-rw-r--r-- 1 davidpruitt davidpruitt     343 Apr 24 21:11 Android.mk
+-rwxr-xr-x 1 davidpruitt davidpruitt   58696 Apr 24 21:41 a.out
+-rw-r--r-- 1 davidpruitt davidpruitt      45 Apr 24 21:11 Application.mk
+drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
+-rw-r--r-- 1 davidpruitt davidpruitt    7410 Apr 24 21:41 implant.cpp
+-rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
+"21:51:20
+ Client: 3 Response: "total 5400
+drwxr-xr-x 3 davidpruitt davidpruitt    4096 Apr 24 21:51 .
+drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
+-rw-r--r-- 1 davidpruitt davidpruitt     343 Apr 24 21:11 Android.mk
+-rwxr-xr-x 1 davidpruitt davidpruitt   62792 Apr 24 21:51 a.out
+-rw-r--r-- 1 davidpruitt davidpruitt      45 Apr 24 21:11 Application.mk
+drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
+-rw-r--r-- 1 davidpruitt davidpruitt    7553 Apr 24 21:50 implant.cpp
+-rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
+"21:53:13
+ Client: 2 Response: "total 5400
+drwxr-xr-x 3 davidpruitt davidpruitt    4096 Apr 24 21:51 .
+drwxr-xr-x 6 davidpruitt davidpruitt    4096 Apr 24 21:11 ..
+-rw-r--r-- 1 davidpruitt davidpruitt     343 Apr 24 21:11 Android.mk
+-rwxr-xr-x 1 davidpruitt davidpruitt   62792 Apr 24 21:51 a.out
+-rw-r--r-- 1 davidpruitt davidpruitt      45 Apr 24 21:11 Application.mk
+drwxr-xr-x 2 davidpruitt davidpruitt    4096 Apr 24 21:11 curl
+-rw-r--r-- 1 davidpruitt davidpruitt    7580 Apr 24 21:52 implant.cpp
+-rw-r--r-- 1 davidpruitt davidpruitt 5432384 Apr 24 21:11 libcurl.a
 "

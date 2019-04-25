@@ -25,7 +25,7 @@ app.post('/command',function(req,res){
 			return console.log(err);
 		}
 	})
-	res.end("yes");
+	res.end("");
 });
 
 //Gets data from file, file contains one line
@@ -45,13 +45,22 @@ app.get('/assignId', function(req,res){
 
 //Let's the server know that device is connected
 //and with what ID
-app.post('checkIn',function(req,res){
+app.post('/checkIn',function(req,res){
 	//Add id to checkin data.
+	var id = req.body.id;
+	var os = req.body.os;
+	addToListOfActiveClient(id, os);
+	console.log("Added client with id: " + id + " and an os of: " + os);
+	res.end("");
 });
 
 //Checkout for ID's that have been self terminated
-app.post('leave', function(req,res){
+app.post('/leave', function(req,res){
 	//Add remove from active client list
+	var id = req.body.id;
+	removeFromListOfActiveClient(id);
+	console.log("Client with ID:" + id + " lost connection.");
+	res.end("");
 });
 
 app.listen(3000, function(){
@@ -72,26 +81,26 @@ function getDateTime()
 	sec = (sec < 10 ? "0" : "") + sec;
 
 	//add rest of time stamp
-
 	return hour + ':' + min + ':' + sec;
 }
 
 
 var ActiveClients = [];
 
-function addToListOfActiveClient(iD)
+function addToListOfActiveClient(ID, OS)
 {
 	ActiveClients.push({
-		ClientId: iD
+		ClientId: ID,
+		OS: OS
 	});
 }
 
-function removeFromListOfActiveClient(iD)
+function removeFromListOfActiveClient(ID)
 {
-
+	
 }
 
 function getListOfActiveClient()
 {
-
+	
 }
