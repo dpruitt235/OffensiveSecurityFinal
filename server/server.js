@@ -68,19 +68,20 @@ app.listen(PORT, () => {
 
 eventEmitter.on('agent', (id, ...cmd) => {
   if (id == null || cmd.length === 0) {
-    console.log("Usage: agent <id> <cmd>");
+    console.log('Usage: agent <id> <cmd>');
     return;
   }
 
   if (agents[id] == null) {
-    console.log('\x1b[31m%s\x1b[0m', "An agent with that ID does not exist");
+    console.log('\x1b[31m%s\x1b[0m', 'An agent with that ID does not exist');
     return;
   }
 
-  cmd = cmd.join(' ');
+  // join cmd array into a string
+  const command = cmd.join(' ');
 
-  console.log(`Executing ${cmd} on agent ${id}`);
-  agents[id].commands.push(cmd);
+  console.log(`Executing ${command} on agent ${id}`);
+  agents[id].commands.push(command);
 });
 
 eventEmitter.on('exit', () => {
