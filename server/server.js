@@ -84,6 +84,16 @@ eventEmitter.on('agent', (id, ...cmd) => {
   agents[id].commands.push(command);
 });
 
+eventEmitter.on('list', () => {
+  console.log('Agents connected are:');
+  for(var i =0; i <= newId; i++){
+    if(agents[i] != null){
+      console.log(`Agent ${i}: ${JSON.stringify(agents[i])} \n`);
+    }
+  }
+
+});
+
 eventEmitter.on('exit', () => {
   console.log('Shutting down server');
   process.exit();
