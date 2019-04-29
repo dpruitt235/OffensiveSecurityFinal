@@ -119,7 +119,7 @@ static size_t read_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream)
 
 void upload_file(string url, string location) {
     //Shell method
-    //exec("curl -F \"upload_filename=@" + location + "\" -L " + url);
+    //exec("curl -X POST '" + url + "' --data '@" + location + "'");
 
     //CURL Method
     /*CURL *curl = curl_easy_init();
