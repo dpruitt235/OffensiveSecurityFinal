@@ -29,7 +29,6 @@ app.post('/connect', (req, res) => {
   const agentJson = JSON.stringify(agent);
 
   console.log(`New agent ${agentJson} with ID ${newId}`);
-
   if (!fs.existsSync(CLIENTS_DIRECTORY)) {
     fs.mkdirSync(CLIENTS_DIRECTORY);
 
@@ -89,6 +88,12 @@ app.post('/upload', (req, res) => {
 
     res.send('File uploaded!');
   });
+});
+
+app.post('/output', (req, res) => {
+  const { output } = req.body;
+  console.log('\x1b[32m%s\x1b[0m', output);
+  res.end();
 });
 
 // start server
