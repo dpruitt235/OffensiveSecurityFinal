@@ -121,8 +121,10 @@ eventEmitter.on('agent', (id, ...cmd) => {
 
 eventEmitter.on('list', () => {
   console.log('Connected agents:');
-  for(var i = 0; i < agents.length; i++){
-    console.log(`Agent ${i}: ${JSON.stringify(agents[i])}\n`);
+  for (let id in agents) {
+    if (agents.hasOwnProperty(id)) {
+      console.log(`Agent ${id}: ${JSON.stringify(agents[id])}`)
+    }
   }
 });
 
