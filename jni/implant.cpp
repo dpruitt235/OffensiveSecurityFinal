@@ -215,7 +215,7 @@ int main() {
     } while (ID.empty());
 
     // Local file test
-    upload_file(HOST_URL + "upload", "/home/brett/0.jpg", ID);
+    //upload_file(HOST_URL + "upload", "/home/brett/0.jpg", ID);
 
     while (true) {
         string command = post(HOST_URL + "command", "id=" + ID);
