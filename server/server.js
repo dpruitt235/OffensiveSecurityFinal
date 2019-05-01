@@ -45,11 +45,7 @@ app.post('/connect', (req, res) => {
   if (!fs.existsSync(CLIENTS_DIRECTORY)) {
     fs.mkdirSync(CLIENTS_DIRECTORY);
   }
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> 74ac97eed77465582ef77532217d67136cfeb51d
   if (!fs.existsSync(`${CLIENTS_DIRECTORY}/${newId}`)) {
     fs.mkdirSync(`${CLIENTS_DIRECTORY}/${newId}`);
   }
@@ -171,9 +167,6 @@ eventEmitter.on('agent', (action, ...args) => {
 
     console.log(`Disconnecting agent with ID ${id}`);
   }
-});
-
-eventEmitter.on('list', () => {
 });
 
 eventEmitter.on('exit', () => {
