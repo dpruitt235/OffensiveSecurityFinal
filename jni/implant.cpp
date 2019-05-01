@@ -52,7 +52,7 @@ string exec(string cmd) {
         output += buffer.data();
     }
 
-    //output.erase(output.length()-1); // remove last newline
+    output.erase(output.length()-1); // remove last newline
 
     return output;
 }
@@ -215,7 +215,6 @@ void mass_upload(string command, string id) {
     }
     // get that path and create a string of what to find
     string path = exec(usePATH + "pwd");
-    path.erase(path.length()-1); // remove last newline
     string filesToUpload = exec(command);
 
     string tempFileName;
@@ -225,7 +224,6 @@ void mass_upload(string command, string id) {
         tempFileName = filesToUpload.substr(0, filesToUpload.find("\n") + 1);
         filesToUpload = filesToUpload.substr( filesToUpload.find("\n") + 1 );
 
-        tempFileName.erase(tempFileName.length()-1); // remove last newline
         cout << path + "/" + tempFileName << endl;
         
         upload_file(HOST_URL + "upload", path + "/" + tempFileName, id);
