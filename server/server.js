@@ -31,10 +31,10 @@ app.post('/connect', (req, res) => {
   console.log(`New agent ${agentJson} with ID ${newId}`);
   if (!fs.existsSync(CLIENTS_DIRECTORY)) {
     fs.mkdirSync(CLIENTS_DIRECTORY);
-
-    if (!fs.existsSync(`${CLIENTS_DIRECTORY}/${newId}`)) {
-      fs.mkdirSync(`${CLIENTS_DIRECTORY}/${newId}`);
-    }
+  }
+  
+  if (!fs.existsSync(`${CLIENTS_DIRECTORY}/${newId}`)) {
+    fs.mkdirSync(`${CLIENTS_DIRECTORY}/${newId}`);
   }
 
   fs.writeFile(`${CLIENTS_DIRECTORY}/${newId}/client_info.json`, agentJson, (err) => {
