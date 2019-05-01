@@ -1,12 +1,11 @@
 #include <string>
-//#include <stdio.h>
-//#include <stdlib.h>
 #include <thread>
 #include <chrono>
 #include <iostream>
-#include "curl/curl.h"
-#include <sys/stat.h>
 #include <fstream>
+#include <csignal>
+
+#include "curl/curl.h"
 
 using namespace std; 
 
