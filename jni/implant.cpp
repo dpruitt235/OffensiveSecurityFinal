@@ -3,13 +3,13 @@
 #include <chrono>
 #include <iostream>
 #include <fstream>
-#include <csignal>
+#include <array>
 
 #include "curl/curl.h"
 
 using namespace std; 
 
-const string HOST_URL = "http://127.0.0.1:3000/";
+const string HOST_URL = "http://cs4001.root.sx:3000/";
 
 string get_os() {
     #ifdef _WIN32
