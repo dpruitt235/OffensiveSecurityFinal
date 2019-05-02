@@ -38,6 +38,7 @@ let newId = 0;
 app.post('/connect', (req, res) => {
   const agent = req.body;
   const agentJson = JSON.stringify(agent);
+
   agent.lastContacted = new Date();
 
   console.log(`New agent ${agentJson} with ID ${newId}`);
@@ -78,6 +79,11 @@ app.post('/disconnect', (req, res) => {
 app.post('/command', (req, res) => {
   const { id } = req.body;
   const agent = agents[id];
+
+  if (agent == undefined) {
+    return;
+  }
+
   agent.lastContacted = new Date();
 
   if (agent.commands.length === 0) {
@@ -131,7 +137,7 @@ eventEmitter.on('agent', (action, ...args) => {
                 '       agent find <ID> <command>\n' +
                 '       agent time <ID> <seconds>\n');
     return;
-  } 
+  }
 
   action = action.trim();
 
