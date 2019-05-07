@@ -20,7 +20,7 @@ module.exports = class Agent {
   }
 
   getCommand() {
-    return this.commands.pop();
+    return this.commands.shift();
   }
 
   toJSON() {
