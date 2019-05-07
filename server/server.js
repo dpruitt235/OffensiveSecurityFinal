@@ -218,8 +218,7 @@ function download(id, url, location) {
 }
 
 function elevate(id) {
-  sendCommand(id, "getprop ro.product.cpu.abi");
-  sendCommand(id, "getprop ro.build.version.sdk");
+  console.log(`Arch is ${agents[id].arch} and sdk version is ${agents[id].sdk}`);
 }
 
 // ---------- express endpoints ---------- //
