@@ -53,14 +53,6 @@ string get_os() {
     #endif
 }
 
-string get_arch() {
-    return exec("getprop ro.product.cpu.abi");
-}
-
-string get_sdk_version() {
-    return exec("getprop ro.build.version.sdk");
-}
-
 size_t write_data(void *contents, size_t size, size_t nmemb, void *userp) {
     ((string*)userp)->append((char*)contents, size * nmemb);
     return size * nmemb;
@@ -202,11 +194,6 @@ int main(int argc, char* argv[]) {
     string user = exec("id -un");
     string os = get_os();
     string response;
-
-    string connect_string = "hostname=" + hostname + "&user=" + user + "&os=" + os;
-    if (os == "Android") {
-        connect_string += "&arch=" + get_arch() + "&sdk=" + get_sdk_version();
-    }
 
     // wait for server
     while (response.empty()) {
