@@ -11,8 +11,7 @@
 using namespace std; 
 using namespace rapidjson;
 
-//const string HOST_URL = "http://cs4001.root.sx:3000/";
-const string HOST_URL = "http://localhost:3000/";
+const string HOST_URL = "http://cs4001.root.sx:3000/";
 
 string exec(string cmd, string working_dir=".") {
     array<char, 128> buffer;
